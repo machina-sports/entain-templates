@@ -1,0 +1,30 @@
+setup:
+  title: Bwin API
+  description: Connect to the Bwin Sports API to access fixtures, competitions, odds and live data across multiple sports and countries.
+  category:
+    - data-acquisition
+    - sports-betting
+    - live-data
+  estimatedTime: 1 minute
+  features:
+    - Fixtures & Markets
+    - Live Scoreboards
+    - Pre-match & In-play Odds
+    - Competition Data
+    - Multi-language Support
+    - Country-specific Data
+    - Sport Categories
+    - Participant Information
+  integrations:
+    - bwin
+  requirements:
+    - Bwin-AccessId
+    - Bwin-AccessIdToken
+  status: available
+  value: bwin
+  version: 1.0.0
+
+datasets:
+  - type: "connector"
+    path: "bwin.yml" 
+

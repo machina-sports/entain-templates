@@ -1,0 +1,55 @@
+agent:
+  name: "agent-nba-producer"
+  title: "Agent NBA Producer"
+  description: "Agent responsible for research and production of articles."
+  context:
+    event_code: "$.get('event_code')"
+  workflows:
+        
+    # Reporter Team History
+    - name: "research-team"
+      description: "Reporter Team History"
+      inputs:
+        event_code: "$.get('event_code')"
+      outputs:
+        reporter-team-history: "$.get('workflow-status', False)"
+
+    # # Reporter Team News
+    # - name: "research-news"
+    #   description: "Reporter Team News"
+    #   inputs:
+    #     event_code: "$.get('event_code')"
+    #   outputs:
+    #     reporter-team-news: "$.get('workflow-status', False)"
+
+    # Reporter Stats
+    - name: "research-stats-nba"
+      description: "Reporter NBA Stats"
+      inputs:
+        event_code: "$.get('event_code')"
+      outputs:
+        research-stats-nba: "$.get('workflow-status', False)"
+
+    # Reporter Odds
+    - name: "research-odds"
+      description: "Reporter Odds"
+      inputs:
+        event_code: "$.get('event_code')"
+      outputs:
+        research-odds: "$.get('workflow-status', False)"
+
+    # # Reporter Image
+    # - name: "agent-templates/reporter-image"
+    #   description: "Reporter Image"
+    #   inputs:
+    #     event_code: "$.get('event_code')"
+    #   outputs:
+    #     agent-templates/reporter-image: "$.get('workflow-status', False)"
+
+    # Reporter Editor
+    - name: "reporter-article"
+      description: "Reporter Article"
+      inputs:
+        event_code: "$.get('event_code')"
+      outputs:
+        reporter-article: "$.get('workflow-status', False)"

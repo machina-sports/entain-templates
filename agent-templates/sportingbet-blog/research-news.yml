@@ -1,0 +1,597 @@
+workflow:
+  name: "research-news"
+  title: "Research News"
+  description: "Workflow to produce research news."
+  context-variables:
+    perplexity:
+      basicAuth: "$MACHINA_CONTEXT_VARIABLE_PERPLEXITY_API_KEY"
+    debugger:
+      enabled: true
+    openai:
+      api_key: "$MACHINA_CONTEXT_VARIABLE_OPENAI_API_KEY"
+  inputs:
+    event_code: "$.get('event_code') or None"
+    perplexity_model: "$.get('perplexity_model', 'sonar')"
+    perplexity_max_tokens: "$.get('perplexity_max_tokens', 10000)"
+    perplexity_top_p: "$.get('perplexity_top_p', 0.9)"
+    perplexity_temperature: "$.get('perplexity_temperature', 0.2)"
+    system_message: "$.get('system_message', 'Please create a comprehensive news report focused on the specified team. Include: - Recent team form and performance trends - Key player statistics and notable performances - Historical performance against the upcoming opponent - Significant team records and milestones that could be achieved in this match - Injury updates and expected lineup changes - Teams playing style and tactical approaches - Notable achievements and records from this season - Any relevant historical context or interesting facts about the team. Focus on information that provides valuable context for the upcoming match.')"
+  outputs:
+    events: "$.get('events')"
+    workflow-status: "$.get('event_exists') is not True and 'skipped' or 'executed'"
+  tasks:
+    
+    # 0 load-event-by-code
+    - type: "document"
+      name: "load-event-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('event_code') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "{'$in': ['nba-game', 'soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 1 load-event-by-schedule
+    - type: "document"
+      name: "load-event-by-schedule"
+      description: "Search for schedule events (sportradar)."
+      condition: "$.get('event_exists') is not True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=48)}"
+        value.version_control.processing: "{'$ne': True}"
+        value.version_control.research_news_status: "{'$exists': False}"
+      inputs:
+        name: "{'$in': ['nba-game', 'soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 2 sportradar-nba-mapping
+    - type: "mapping"
+      name: "sportradar-nba-mapping"
+      description: "Transform the sportradar nba data"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        event_code: "$.get('event_code')"
+        news_count: "$.get('research_news_count')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+
+    # 3 sportradar-soccer-mapping
+    - type: "mapping"
+      name: "sportradar-soccer-mapping"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        event_code: "$.get('event_code')"
+        news_count: "$.get('research_news_count')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+
+    # 4 version-control-update (schedule)
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'research_news_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    # 5 version-control-update (nba-game)
+    - type: "document"
+      name: "version-control-update-nba-game"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        nba-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'research_news_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    # 6 research-team-news (home team)
+    - type: "connector"
+      name: "fetch-perplexity-api"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "perplexity"
+        command: "post-chat/completions"
+      inputs:
+        body: |
+          {
+            'model': $.get('perplexity_model'),
+            'messages': [
+              {
+                'role': 'system',
+                'content': $.get('system_message')
+              },{
+                'role': 'user',
+                'content': f"Create a news report about {$.get('team_home_name')}"
+              }
+            ],
+            'max_tokens': $.get('perplexity_max_tokens'),
+            'temperature': $.get('perplexity_temperature'),
+            'top_p': $.get('perplexity_top_p'),
+            'return_citations': $.get('return_citations', True),
+            'return_images': $.get('return_images', False),
+            'return_related_questions': $.get('return_related_questions', True),
+            'search_recency_filter': $.get('search_recency_filter', 'week'),
+            'top_k': $.get('top_k', 0),
+            'stream': $.get('stream', False),
+            'presence_penalty': $.get('presence_penalty', 0),
+            'frequency_penalty': $.get('frequency_penalty', 1)
+          }
+      outputs:
+        result-home-news: "$.get('choices')[0].get('message').get('content')"
+
+    # 7 research-team-news (away team)
+    - type: "connector"
+      name: "fetch-perplexity-api"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "perplexity"
+        command: "post-chat/completions"
+      inputs:
+        body: |
+          {
+            'model': $.get('perplexity_model'),
+            'messages': [
+              {
+                'role': 'system',
+                'content': $.get('system_message')
+              },{
+                'role': 'user',
+                'content': f"Create a news report about {$.get('team_away_name')}"
+              }
+            ],
+            'max_tokens': $.get('perplexity_max_tokens'),
+            'temperature': $.get('perplexity_temperature'),
+            'top_p': $.get('perplexity_top_p'),
+            'return_citations': $.get('return_citations', True),
+            'return_images': $.get('return_images', False),
+            'return_related_questions': $.get('return_related_questions', True),
+            'search_recency_filter': $.get('search_recency_filter', 'week'),
+            'top_k': $.get('top_k', 0),
+            'stream': $.get('stream', False),
+            'presence_penalty': $.get('presence_penalty', 0),
+            'frequency_penalty': $.get('frequency_penalty', 1)
+          }
+      outputs:
+        result-away-news: "$.get('choices')[1].get('message').get('content')"
+
+    # 8 research-home-news-rating (home team)
+    - type: "prompt"
+      name: "research-team-news"
+      description: "Generate research team news."
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "openai"
+workflow:
+  name: "research-news"
+  title: "Research News"
+  description: "Workflow to produce research news."
+  context-variables:
+    perplexity:
+      basicAuth: "$MACHINA_CONTEXT_VARIABLE_PERPLEXITY_API_KEY"
+    debugger:
+      enabled: true
+    openai:
+      api_key: "$MACHINA_CONTEXT_VARIABLE_OPENAI_API_KEY"
+  inputs:
+    event_code: "$.get('event_code') or None"
+    perplexity_model: "$.get('perplexity_model', 'sonar')"
+    perplexity_max_tokens: "$.get('perplexity_max_tokens', 10000)"
+    perplexity_top_p: "$.get('perplexity_top_p', 0.9)"
+    perplexity_temperature: "$.get('perplexity_temperature', 0.2)"
+    system_message: "$.get('system_message', 'Please create a comprehensive news report focused on the specified team. Include: - Recent team form and performance trends - Key player statistics and notable performances - Historical performance against the upcoming opponent - Significant team records and milestones that could be achieved in this match - Injury updates and expected lineup changes - Teams playing style and tactical approaches - Notable achievements and records from this season - Any relevant historical context or interesting facts about the team. Focus on information that provides valuable context for the upcoming match.')"
+  outputs:
+    events: "$.get('events')"
+    workflow-status: "$.get('event_exists') is not True and 'skipped' or 'executed'"
+  tasks:
+    
+    # 0 load-event-by-code
+    - type: "document"
+      name: "load-event-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('event_code') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "{'$in': ['nba-game', 'soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 1 load-event-by-schedule
+    - type: "document"
+      name: "load-event-by-schedule"
+      description: "Search for schedule events (sportradar)."
+      condition: "$.get('event_exists') is not True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=48)}"
+        value.version_control.processing: "{'$ne': True}"
+        value.version_control.research_news_status: "{'$exists': False}"
+      inputs:
+        name: "{'$in': ['nba-game', 'soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 2 sportradar-nba-mapping
+    - type: "mapping"
+      name: "sportradar-nba-mapping"
+      description: "Transform the sportradar nba data"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        event_code: "$.get('event_code')"
+        news_count: "$.get('research_news_count')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+
+    # 3 sportradar-soccer-mapping
+    - type: "mapping"
+      name: "sportradar-soccer-mapping"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        event_code: "$.get('event_code')"
+        news_count: "$.get('research_news_count')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+
+    # 4 version-control-update (schedule)
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'research_news_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    # 5 version-control-update (nba-game)
+    - type: "document"
+      name: "version-control-update-nba-game"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        nba-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'research_news_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    # 6 research-team-news (home team)
+    - type: "connector"
+      name: "fetch-perplexity-api"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "perplexity"
+        command: "post-chat/completions"
+      inputs:
+        body: |
+          {
+            'model': $.get('perplexity_model'),
+            'messages': [
+              {
+                'role': 'system',
+                'content': $.get('system_message')
+              },{
+                'role': 'user',
+                'content': f"Create a news report about {$.get('team_home_name')}"
+              }
+            ],
+            'max_tokens': $.get('perplexity_max_tokens'),
+            'temperature': $.get('perplexity_temperature'),
+            'top_p': $.get('perplexity_top_p'),
+            'return_citations': $.get('return_citations', True),
+            'return_images': $.get('return_images', False),
+            'return_related_questions': $.get('return_related_questions', True),
+            'search_recency_filter': $.get('search_recency_filter', 'week'),
+            'top_k': $.get('top_k', 0),
+            'stream': $.get('stream', False),
+            'presence_penalty': $.get('presence_penalty', 0),
+            'frequency_penalty': $.get('frequency_penalty', 1)
+          }
+      outputs:
+        result-home-news: "$.get('choices')[0].get('message').get('content')"
+
+    # 7 research-team-news (away team)
+    - type: "connector"
+      name: "fetch-perplexity-api"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "perplexity"
+        command: "post-chat/completions"
+      inputs:
+        body: |
+          {
+            'model': $.get('perplexity_model'),
+            'messages': [
+              {
+                'role': 'system',
+                'content': $.get('system_message')
+              },{
+                'role': 'user',
+                'content': f"Create a news report about {$.get('team_away_name')}"
+              }
+            ],
+            'max_tokens': $.get('perplexity_max_tokens'),
+            'temperature': $.get('perplexity_temperature'),
+            'top_p': $.get('perplexity_top_p'),
+            'return_citations': $.get('return_citations', True),
+            'return_images': $.get('return_images', False),
+            'return_related_questions': $.get('return_related_questions', True),
+            'search_recency_filter': $.get('search_recency_filter', 'week'),
+            'top_k': $.get('top_k', 0),
+            'stream': $.get('stream', False),
+            'presence_penalty': $.get('presence_penalty', 0),
+            'frequency_penalty': $.get('frequency_penalty', 1)
+          }
+      outputs:
+        result-away-news: "$.get('choices')[1].get('message').get('content')"
+
+    # 8 research-home-news-rating (home team)
+    - type: "prompt"
+      name: "research-team-news"
+      description: "Generate research team news."
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "openai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        title: "$.get('title')"
+        team: "$.get('team_home_name')"
+        news: "$.get('result-home-news')"
+      outputs:
+        research-home-news: "$"
+        research-home-news-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(team_home_name) - {c.get('title', '')}",
+              'metadata': {
+                'event_code': '$.(event_code)',
+                'team_id': '$.(team_home_id)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 9 research-away-news-rating (away team)
+    - type: "prompt"
+      name: "research-team-news"
+      description: "Generate research team news."
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "openai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        title: "$.get('title')"
+        team: "$.get('team_away_name')"
+        news: "$.get('result-away-news')"
+      outputs:
+        research-away-news: "$"
+        research-away-news-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(team_away_name) - {c.get('title', '')}",
+              'metadata': {
+                'event_code': '$.(event_code)',
+                'team_id': '$.(team_away_id)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 10 update-documents (home team)
+    - type: "document"
+      name: "update-documents-home"
+      description: "Update the documents."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        team-news: |
+          {
+            "execution": datetime.utcnow(),
+            "content": $.get('research-home-news'),
+            "title": f"{$.get('team_home_name')} Latest News",
+            "status": 'active'
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+        team_id: "$.get('team_home_id')"
+
+    # 11 update-documents (away team)
+    - type: "document"
+      name: "update-documents-away"
+      description: "Update the documents."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        team-news: |
+          {
+            "execution": datetime.utcnow(),
+            "content": $.get('research-away-news'),
+            "title": f"{$.get('team_away_name')} Latest News",
+            "status": 'active'
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+        team_id: "$.get('team_away_id')"
+    
+    # 12 update-snippets
+    - type: "document"
+      name: "update-snippets"
+      condition: "$.get('event_exists') is True"
+      description: "Update the snippets."
+      config:
+        action: "bulk-save"
+        embed-vector: true
+        force-update: true
+      connector:
+        name: "openai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      document_name: "content-snippet"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            *$.get('research-home-news-bulk', []),
+            *$.get('research-away-news-bulk', []),
+          ]
+    
+    # 13 version-control-success-schedule
+    - type: "document"
+      name: "version-control-success-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': False,
+              'research_news_count': $.get('news_count', 0) + 1,
+              'research_news_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+    
+    # 14 version-control-success-nba-game
+    - type: "document"
+      name: "version-control-success-nba-game"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        nba-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': False,
+              'research_news_count': $.get('news_count', 0) + 1,
+              'research_news_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"

@@ -1,0 +1,473 @@
+prompts:
+
+  # image-soccer
+  - type: "prompt"
+    title: "Reporter Image - Soccer"
+    name: "prompt-image-soccer"
+    description: "This schema defines the structure to generate a detailed image briefing for a soccer match."
+    schema:
+      title: "ReporterImageBriefing"
+      description: "This schema defines the structure to generate a detailed image briefing for a soccer match."
+      type: "object"
+      properties:
+        image-briefing:
+          type: "string"
+          description: "Create a prompt for a blog image, following these instructions and the context below: The image should capture the excitement and energy of a major soccer match, in a semi-realistic style with vibrant, bold colors and dynamic lighting. The scene should be set in a context that showcases the passion and dedication of the fans, while being mindful of the match location – whether it's a massive modern arena in a major city, an intimate local stadium, or a historic venue with unique character. For larger venues, emphasize the grandeur and scale; for smaller ones, focus on the intimate atmosphere and local flavor. The scene could include a packed stadium, a lively fan zone, a city street filled with supporters, etc. Be creative here. Incorporate creative visual elements that convey the intensity and drama of the event, while maintaining a consistent visual language characterized by a bold and bright color palette, sharp lines and geometric shapes, high-contrast lighting with deep shadows, and a mix of textured and smooth surfaces. The visual style should be modern, edgy, and attention-grabbing, with a sense of energy and movement that draws the viewer in. The image should be perfect for a sports betting blog, evoking the thrill of the game and the rush of placing a bet."
+
+  # image-nba-game
+  - type: "prompt"
+    title: "Reporter Image - NBA Game"
+    name: "prompt-image-nba-game"
+    description: "This schema defines the structure to generate a detailed image briefing for an NBA game."
+    schema:
+      title: "ImageBriefingNBA"
+      description: "This schema defines the structure to generate a detailed image briefing for an NBA game."
+      type: "object"
+      properties:
+        image-briefing:
+          type: "string"
+          description: "Create a prompt for a blog image, following these instructions and the context below: The image should show an external view of an NBA arena from the top of a hill overlooking it. The arena is packed to full capacity, with the supporters' colors clearly visible in banners, lights, and the crowd. The surrounding area should feature fans heading toward the arena, adding to the excitement. The style should be semi-realistic, with vibrant colors to capture the lively and energetic atmosphere of the event."
+
+  # image-referee
+  - type: "prompt"
+    title: "Reporter Image - Referee"
+    name: "prompt-image-referee"
+    description: "This schema defines the structure to generate a detailed image briefing for a soccer match referee."
+    schema:
+      title: "ImageBriefingReferee"
+      description: "This schema defines the structure to generate a detailed image briefing for a soccer match referee."
+      type: "object"
+      properties:
+        image-briefing:
+          type: "string"
+          description: "Create a prompt for a blog image, following these instructions and the context below: The image should show a soccer referee in a dramatic moment on the field, with a determined expression as they hold up a red or yellow card. The referee should be wearing the traditional black uniform and be positioned in the foreground against a blurred stadium background filled with spectators. The lighting should highlight the authority and intensity of the moment, with the referee's stance conveying confidence and decisiveness. The style should be semi-realistic, capturing the tension and gravity of an important disciplinary decision during a match."
+
+  # agent-templates/reporter-preview-br
+  - type: "prompt"
+    title: "Blog Reporter Game Preview"
+    name: "prompt-reporter-preview-br"
+    description: "Este prompt gera o título, subtítulo e slug para um post do blog em português brasileiro sobre uma partida que ainda não ocorreu. O tom deve ser profissional mas com personalidade, como um amigo que manja muito de apostas e sabe entreter enquanto informa. Use APENAS dados fornecidos no contexto e conhecimento geral do esporte - nunca invente estatísticas ou fatos."
+    schema:
+      title: "PostBlogPreviaConteudo"
+      description: "Este schema define a estrutura para gerar os elementos de um post do blog em português brasileiro sobre uma partida que ainda não ocorreu, baseando-se EXCLUSIVAMENTE nos dados fornecidos e no conhecimento geral do esporte."
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: "Gere um título seguindo o seguinte template: 'Palpites [Time A] x [Time B]: odds do [Nome do Campeonato]'. Use os dados disponíveis para substituir os campos entre colchetes, garantindo que o título contenha as informações essenciais do confronto."
+        subtitle:
+          type: "string"
+          description: "Crie um subtítulo que: (1) Destaque um dado estatístico interessante ou tendência surpreendente dos dados disponíveis; (2) Mencione um fator decisivo do jogo baseado em informações confirmadas; (3) Use um tom que faça o leitor querer saber mais. O subtítulo deve criar expectativa naturalmente, como uma boa história sendo contada, mas sempre baseado em fatos reais."
+        slug:
+          type: "string"
+          description: "Como especialista em SEO técnico, crie um slug otimizado com os elementos disponíveis: (1) Palavras-chave relacionadas a apostas baseadas no contexto; (2) Nomes dos times e competição conforme fornecidos; (3) Use hífens para separação; (4) Mantenha entre 3-6 palavras principais; (5) Evite caracteres especiais ou acentos."
+        content:
+          type: "string"
+          description: |
+            Atue como um analista de apostas que realmente entende do assunto e sabe contar uma boa história. Para evitar conteúdo repetitivo, varie seu estilo de escrita baseado nos seguintes elementos do jogo:
+            
+            - Se é um clássico histórico: foque na rivalidade e tradição
+            - Se é um confronto direto por posição: enfatize a importância na tabela
+            - Se há um artilheiro em destaque: construa a narrativa ao redor dele
+            - Se há um retrospecto recente interessante: use-o como elemento central
+            - Se é um duelo tático interessante: explore as diferentes estratégias
+            - Se há um contexto especial (final, estreia, etc): faça dele o foco principal
+            
+            **Nota Interna:** Você está gerando posts de blog em nome da equipe Sportingbet. Essa informação NÃO deve aparecer no output gerado. Certifique-se de que o conteúdo seja envolvente, focado em explicar aos novos apostadores onde apostar e atrair tráfego para a plataforma.
+            
+            Estrutura do conteúdo:
+            
+            Em até 50 palavras, forneça um resumo conciso que foque em um ou dois aspectos principais, como uma sequência positiva da equipe, uma tendência marcante nas apostas, um encontro anterior relevante, uma lesão importante, uma mudança significativa no point spread ou rumores impactantes, incluindo a data e o horário de início (campo "start_time" convertido de GMT para o horário local da partida). Evite narrar toda a história do jogo. 
+            
+            ## As odds para [Time A] x [Time B]
+            
+            Em cerca de 150 palavras, discuta as odds como se estivesse conversando com um amigo em um bar. **Se a partida for de basquete, foque exclusivamente no point spread (não na moneyline) e no total, além de mencionar quaisquer tendências recentes contra o spread que sejam relevantes.** Para outros esportes, siga as diretrizes gerais.
+            
+            ## [Nome do Time A]
+            
+            Em até 150 palavras, apresente as últimas notícias da equipe visitante, com ênfase em estatísticas, tendências de apostas, classificação da equipe, séries de resultados, alterações na escalação, lesões e rumores que possam impactar o jogo.
+            
+            ## [Nome do Time B]
+            
+            Em até 150 palavras, detalhe as informações da equipe mandante, incluindo notícias recentes, estatísticas, tendências de apostas, classificação, séries de resultados, alterações na escalação, lesões e rumores relevantes.
+            
+            ## Jogadores para assistir
+            
+            Em até 150 palavras, destaque os jogadores chave de ambas as equipes, discutindo suas formas e quaisquer estatísticas relevantes.
+            
+            ## Quem vence, [Time A] ou [Time B]?
+            
+            Apresente uma previsão confiante do resultado, escolhendo um lado com base nos dados disponíveis e justificando sua análise com convicção, incluindo uma previsão para o placar. Evite linguagem indecisa como "talvez" ou "pode ser".
+            
+            **Diretrizes Gerais:**
+            - Baseie os insights em estatísticas reais e odds fornecidas, evitando comentários genéricos.
+            - Use apenas dados explicitamente fornecidos no contexto.
+            - Não invente resultados de jogos anteriores ou estatísticas fictícias.
+            - Não faça suposições sobre lesões ou escalações sem confirmação.
+            - Use seu conhecimento geral do esporte apenas para contextualizar dados reais.
+            - Se informações importantes estiverem ausentes, foque no que está disponível.
+            - Seja criativo na narrativa, mas factual com os dados.
+            - Use markdown formatting.
+            - Converta o horário de início (start_time) de GMT para o horário local da partida.
+            
+            **Variedade:**
+            - Alterne entre diferentes aberturas (estatística, narrativa, pergunta retórica, citação relevante).
+            - Varie a ordem de apresentação das informações e as transições entre seções.
+            - Adapte o tom conforme o contexto do jogo, sendo mais sério para partidas decisivas e mais leve para jogos regulares.
+            - Evite iniciar parágrafos da mesma forma.
+
+  # reporter-preview-en
+  - type: "prompt"
+    title: "Blog Reporter Game Preview"
+    name: "prompt-reporter-preview-en"
+    description: "This prompt generates the title, subtitle, and slug for a blog post in English about an upcoming match. The tone should be professional yet personable, like a knowledgeable friend who understands betting and knows how to inform while entertaining. Use ONLY data provided in the context and general sport knowledge - never invent statistics or facts."
+    schema:
+      title: "BlogPreviewContent"
+      description: "This schema defines the structure for generating blog post elements in English about an upcoming match, based EXCLUSIVELY on provided data and general sport knowledge."
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: "Generate a title following this template: 'Betting Tips for [Team A] vs [Team B]: odds from [Competition Name]'. Use the available data to replace the placeholders appropriately, ensuring the title conveys the essential details of the match."
+        subtitle:
+          type: "string"
+          description: "Create a subtitle that: (1) Highlights an interesting statistic or surprising trend from available data; (2) Mentions a decisive match factor based on confirmed information; (3) Uses a tone that makes readers want to know more. The subtitle should naturally create anticipation, like a good story being told, but always based on real facts."
+        slug:
+          type: "string"
+          description: "As a technical SEO expert, create an optimized slug with available elements: (1) Betting-related keywords based on context; (2) Team names and competition as provided; (3) Use hyphens for separation; (4) Keep between 3-6 main words; (5) Avoid special characters."
+        content:
+          type: "string"
+          description: |
+            Act as an experienced betting analyst who tells concise and impactful stories. For avoiding repetitive content, vary your writing style based on the following elements of the game:
+            
+            - If it's a historic classic: focus on rivalry and tradition
+            - If it's a direct position clash: emphasize importance in the standings
+            - If there's a standout goalscorer: build the narrative around them
+            - If there's a recent interesting retrospective: use it as the central element
+            - If it's an interesting tactical duel: explore different strategies
+            - If there's a special context (final, debut, etc): make it the main focus
+            
+            **Internal Note:** You are generating blog posts on behalf of the Sportingbet team. This information should NOT appear in the generated output. Ensure that the content is engaging, focused on guiding new bettors on where to place their bets, and designed to attract traffic.
+            
+            Content structure:
+            
+            In up to 50 words, provide a concise overview that focuses on one or two key aspects such as a team's hot streak, strong betting trend, a notable previous encounter, a significant player injury, a major change in the point spread, or relevant rumors, including the match date and start time (using the "start_time" field converted from GMT to local time of the match). Avoid narrating the entire game story.
+            
+            ## Odds for [Team A] vs [Team B]
+            
+            In around 150 words, discuss the odds as if you're chatting with a friend at a pub. **If the match is basketball, focus exclusively on the point spread (not the moneyline) and the total, as well as any recent against-the-spread trends that might be helpful.** For other sports, follow the general guidelines.
+            
+            ## [Team A]
+            
+            In up to 150 words, outline the latest news for the away team, emphasizing statistics, betting trends, standings, winning or losing streaks, lineup changes, injuries, and rumors that might affect the match.
+            
+            ## [Team B]
+            
+            In up to 150 words, detail the current situation of the home team, including recent news, statistics, betting trends, standings, winning or losing streaks, lineup changes, injuries, and any pertinent rumors.
+            
+            ## Players to Watch
+            
+            In up to 150 words, highlight key players from both teams, discussing their form and any relevant statistics.
+            
+            ## Who wins, [Team A] or [Team B]?
+            
+            Offer a confident prediction by choosing one side and backing it up with available data, including a score prediction. Avoid uncertain language like "maybe" or "might."
+            
+            **General Guidelines:**
+            - Base insights on actual statistics and provided odds, avoiding generic commentary.
+            - Use only data explicitly provided in the context.
+            - Do not invent previous results, fictional statistics, or unconfirmed information.
+            - Be creative yet factual, using markdown formatting.
+            - Convert match start time (start_time) from GMT to the local match time.
+            
+            **Variety:**
+            - Alternate between different openings (statistical, narrative, rhetorical question, relevant quote).
+            - Vary the order and transitions between sections.
+            - Adjust the tone based on the game context—more serious for decisive matches, lighter for regular games.
+            - Avoid starting paragraphs in the same way.
+            
+  # reporter-comparison
+  - type: "prompt"
+    title: "Reporter Comparison"
+    name: "prompt-reporter-comparison"
+    description: "This schema defines the structure to generate a detailed comparison analysis between two teams' standings and recent performance."  
+    schema:
+      title: "ReporterComparison"
+      description: "This schema defines the structure to generate a detailed comparison analysis between two teams' standings and recent performance."
+      type: "object"
+      properties:
+        snippets:
+          type: "array"
+          description: "An array of snippets analyzing the teams' comparison."
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                description: "The category of comparison analysis (e.g., 'Head-to-Head Comparison', 'Recent Form Comparison', 'Points Gap Comparison', etc)."
+              content:
+                type: "string"
+                description: "Detailed comparative analysis of both teams' comparison situation, including standings, recent form, and relevant performance metrics."
+              confidence:
+                type: "number"
+                description: "The confidence score for the accuracy of the comparison analysis (0.0 to 1.0)."
+            required: ["title", "content", "confidence"]
+          minItems: 2
+          maxItems: 2
+
+  # reporter-players-to-watch
+  - type: "prompt"
+    title: "Reporter Players to Watch"
+    name: "prompt-reporter-players-to-watch"
+    description: "This schema defines the structure to generate a detailed players to watch analysis between two teams."
+    schema:
+      title: "ReporterPlayersToWatch"
+      description: "This schema defines the structure to generate a detailed players to watch analysis between two teams."
+      type: "object"
+      properties:
+        snippets:
+          type: "array"
+          description: "An array of snippets analyzing the players to watch."
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                description: "The category of players to watch analysis (e.g., 'Players to Watch', 'Key Players', etc)."
+              content:
+                type: "string"
+                description: "Detailed comparative analysis of both teams' players to watch situation, including recent form, and relevant performance metrics."
+              confidence:
+                type: "number"
+                description: "The confidence score for the accuracy of the players to watch analysis (0.0 to 1.0)."
+            required: ["title", "content", "confidence"]
+          minItems: 2
+          maxItems: 2
+
+  # reporter-standings
+  - type: "prompt"
+    title: "Reporter Standings"
+    name: "prompt-reporter-standings"
+    description: "This schema defines the structure to generate a detailed standings analysis comparing two teams' positions and performance in their competition."
+    schema:
+      title: "ReporterStandings"
+      description: "This schema defines the structure to generate a comparative standings analysis for two teams in a soccer match."
+      type: "object"
+      properties:
+        snippets:
+          type: "array"
+          description: "An array of snippets analyzing the teams' standings and recent performance."
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                description: "The category of standings analysis (e.g., league positions comparison, form analysis, points gap, etc)."
+              content:
+                type: "string"
+                description: "Detailed comparative analysis of both teams' standings situation, including positions, points, recent form, and relevant performance metrics."
+              confidence:
+                type: "number"
+                description: "The confidence score for the accuracy of the standings analysis (0.0 to 1.0)."
+            required: ["title", "content", "confidence"]
+          minItems: 2
+          maxItems: 2
+
+  # research-match-odds
+  - type: "prompt"
+    title: "Research Match Odds"
+    name: "research-match-odds"
+    description: |
+      You are analyzing betting odds and market trends for an upcoming sports match.
+      
+      Provide comprehensive analysis of the betting markets, including:
+      1. Current odds across major bookmakers
+      2. Historical odds movement and trends
+      3. Key factors affecting the odds (team news, form, head-to-head records)
+      4. Popular betting markets and their value
+      5. Statistical insights relevant to betting markets
+      6. Expert opinions and market sentiment
+      
+      Focus on providing objective analysis of betting opportunities while highlighting important factors that could influence the match outcome.
+    schema:
+      title: "ResearchMatchOdds"
+      description: "This schema defines the structure for generating a comprehensive odds analysis report for a sports match."
+      type: "object"
+      properties:
+        rating:
+          type: "array"
+          description: "An array of ratings evaluating different aspects of the betting markets."
+          items:
+            type: "object"
+            properties:
+              category:
+                type: "string"
+                description: "The category being rated: 'Home Win Value', 'Draw Value', 'Away Win Value', 'Goals Markets', 'Special Markets', or 'Market Confidence'"
+                enum: [
+                  "Home Win Value",
+                  "Draw Value",
+                  "Away Win Value",
+                  "Goals Markets",
+                  "Special Markets",
+                  "Market Confidence"
+                ]
+              score:
+                type: "number"
+                description: "Rating score from 0.0 to 10 indicating the perceived value in this market category"
+              analysis:
+                type: "string"
+                description: "Detailed analysis explaining the rating, including specific odds, trends, and factors that justify the score"
+          minItems: 6
+          maxItems: 6
+        snippets:
+          type: "array"
+          description: "An array of snippets covering different aspects of the match odds analysis."
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                description: "The category of odds information (e.g., 'Match Winner Odds', 'Goals Markets', 'Asian Handicap', 'Key Statistics', 'Bookmaker Comparison')."
+              content:
+                type: "string"
+                description: "Detailed analysis of the specific betting market, including current odds, trends, and relevant factors."
+              confidence:
+                type: "number"
+                description: "The confidence score for the accuracy of the odds analysis (0.0 to 1.0)."
+            required: ["title", "content", "confidence"]
+          minItems: 3
+          maxItems: 3
+
+  # research-team-history
+  - type: "prompt"
+    title: "Research Team History"
+    name: "research-team-history"
+    description: |
+      You are creating a comprehensive historical briefing about a sports competition or event.
+      
+      Provide key historical information and notable facts about the topic, including:
+      1. Origin and evolution of the competition
+      2. Most successful teams/athletes
+      3. Memorable moments and iconic matches
+      4. Record holders and significant achievements
+      5. Historical impact and cultural significance
+      6. Interesting traditions and unique features
+      
+      Focus on providing engaging, well-researched facts that capture the essence and history of the competition.
+    schema:
+      title: "ResearchTeamHistory"
+      description: "This schema defines the structure for generating a historical sports briefing."
+      type: "object"
+      properties:
+        rating:
+          type: "array"
+          description: "An array of ratings evaluating different historical aspects of the team's legacy and importance."
+          items:
+            type: "object"
+            properties:
+              category:
+                type: "string"
+                description: "The category being rated: 'Titles Won', 'Competition Consistency', 'Legendary Figures', 'Fan Base & Culture', 'Historic Matches', or 'Traditional Weight'"
+                enum: [
+                  "Titles Won",
+                  "Competition Consistency", 
+                  "Legendary Figures",
+                  "Fan Base & Culture",
+                  "Historic Matches",
+                  "Traditional Weight"
+                ]
+              score:
+                type: "number"
+                description: "Rating score from 0.0 to 10 indicating the team's strength in this category"
+              analysis:
+                type: "string"
+                description: "Detailed analysis explaining the rating, including specific examples and historical facts that justify the score"
+          minItems: 6
+          maxItems: 6
+        snippets:
+          type: "array"
+          description: "An array of snippets covering different aspects of the team's history."
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                description: "The category of historical information (e.g., 'Club Formation', 'Major Honours', 'Legendary Players', 'Historic Seasons', 'Stadium History')."
+              content:
+                type: "string"
+                description: "Detailed historical facts and information about the specific aspect of the team's history."
+              confidence:
+                type: "number"
+                description: "The confidence score for the historical accuracy of the information (0.0 to 1.0)."
+            required: ["title", "content", "confidence"]
+          minItems: 3
+          maxItems: 3
+
+  # research-team-news
+  - type: "prompt"
+    title: "Research Team News"
+    name: "research-team-news"
+    description: "This prompt generates a news report about a sports team."
+    schema:
+      title: "ResearchTeamNews"
+      description: "This schema defines the structure for generating a news report about a sports team."
+      type: "object"
+      properties:
+        rating:
+          type: "array"
+          description: "An array of ratings evaluating different aspects of the team's current situation."
+          items:
+            type: "object"
+            properties:
+              category:
+                type: "string"
+                description: "The category being rated: 'Current Form', 'Squad Depth', 'Team Morale', 'Tactical Performance', 'Injury Situation', or 'Fan Sentiment'"
+                enum: [
+                  "Current Form",
+                  "Squad Depth",
+                  "Team Morale",
+                  "Tactical Performance",
+                  "Injury Situation",
+                  "Fan Sentiment"
+                ]
+              score:
+                type: "number"
+                description: "Rating score from 0.0 to 10 indicating the team's current strength in this category"
+              analysis:
+                type: "string"
+                description: "Detailed analysis explaining the rating, including specific examples and recent facts that justify the score"
+          minItems: 6
+          maxItems: 6
+        snippets:
+          type: "array"
+          description: "An array of snippets covering different aspects of the team's current news and situation."
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                description: "The category of news information."
+              content:
+                type: "string"
+                description: "Detailed current information and recent developments about the specific aspect of the team's situation."
+              confidence:
+                type: "number"
+                description: "The confidence score for the accuracy of the news information (0.0 to 1.0)."
+            required: ["title", "content", "confidence"]
+          minItems: 3
+          maxItems: 3
+
+  # verify-selected-fixture
+  - type: "prompt"
+    title: "Verify Selected Fixture"
+    name: "verify-selected-fixture"
+    description: "Given two fixture titles and their similarity score, determine if they refer to the same match. Consider that even with high similarity scores (>0.50), the fixtures might be different matches. Verify the competition and teams carefully.\n\nPositive Example:\nTitle1: 'England Premier League - West Ham United - Brentford'\nTitle2: 'England Premier League 24/25: 25 - West Ham United v Brentford FC'\nResult: TRUE (same teams and competition despite different formatting)\n\nNegative Example:\nTitle1: 'England Premier League - Manchester City - Liverpool'\nTitle2: 'England Premier League 24/25: 25 - Liverpool FC v Wolverhampton Wanderers'\nSimilarity: 0.52\nResult: FALSE (different matches - teams don't match exactly)"
+    schema:
+      title: "FixtureVerification"
+      description: "Verify if two fixtures are the same match by comparing team names and competition. High similarity scores alone are not sufficient – exact team matches are required."
+      type: "object"
+      properties:
+        is-match:
+          type: "boolean"
+          description: "Should be TRUE only if both titles refer to exactly the same match (same teams and competition). Return FALSE if there's any doubt or if teams don't match exactly, even with high similarity scores."
+

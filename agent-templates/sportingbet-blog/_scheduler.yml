@@ -1,0 +1,181 @@
+agent:
+  name: "scheduler-workflow"
+  title: "Scheduler Configuration"
+  description: "Agent responsible for scheduling workflows."
+  context:
+    config-frequency: 0.5
+  workflows:
+        
+    # bwin-sync-nba fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'6004'"
+        sportId: "'7'"
+      outputs:
+        sync-markets-odds-nba-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-la liga fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102829'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-la-liga-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-serie A fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102846'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-serie-a-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-bundesliga fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102842'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-bundesliga-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-premier league fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102841'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-premier-league-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-argentina fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102540'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-argentina-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-brasileiro serie a fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102838'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-brasileiro-serie-a-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-brasileiro serie b fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102361'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-brasileiro-serie-b-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-copa libertadores fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102827'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-copa-libertadores-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-copa sudamericana fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102696'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-copa-sudamericana-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-paulista serie a1 fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102148'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-paulista-serie-a1-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-champions league fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102855'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-champions-league-status: "$.get('workflow-status', False)"
+
+    # bwin-sync-europa league fixtures
+    - name: "bwin-sync-markets-odds"
+      description: "sync-markets-odds"
+      inputs:
+        country: "'br'"
+        competitionIds: "'102856'"
+        sportId: "'4'"
+      outputs:
+        sync-markets-odds-europa-league-status: "$.get('workflow-status', False)"
+        
+    # # Reporter Editor
+    # - name: "reporter-article"
+    #   description: "Reporter Article"
+    #   outputs:
+    #     reporter-article: "$.get('workflow-status', False)"
+
+    # # # Reporter Image
+    # # - name: "agent-templates/reporter-image"
+    # #   description: "Reporter Image"
+    # #   outputs:
+    # #     agent-templates/reporter-image: "$.get('workflow-status', False)"
+
+    # # Reporter Odds
+    # - name: "research-odds"
+    #   description: "Reporter Odds"
+    #   outputs:
+    #     research-odds: "$.get('workflow-status', False)"
+
+    # # Reporter Stats
+    # - name: "research-stats-soccer"
+    #   description: "Reporter Soccer Stats"
+    #   outputs:
+    #     research-stats-soccer: "$.get('workflow-status', False)"
+    #     research-odds: "$.get('workflow-status', False)"
+
+    # # Reporter Stats
+    # - name: "research-stats-nba"
+    #   description: "Reporter NBA Stats"
+    #   outputs:
+    #     research-stats-nba: "$.get('workflow-status', False)"
+
+    # # # Reporter Team History
+    # # - name: "research-team"
+    # #   description: "Reporter Team History"
+    # #   outputs:
+    # #     reporter-team-history: "$.get('workflow-status', False)"
+
+    # # # Reporter Team News
+    # # - name: "research-news"
+    # #   description: "Reporter Team News"
+    # #   outputs:
+    # #     reporter-team-news: "$.get('workflow-status', False)"
+

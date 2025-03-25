@@ -1,0 +1,65 @@
+setup:
+  title: "Sportingbet Blog"
+  description: AI-powered blog with personalized recommendations based on betting history.
+  category:
+    - special-templates
+  estimatedTime: 15 minutes
+  features:
+    - AI Agent to generate personalized recommendations based on betting history.
+    - AI Reporter to generate articles, briefings, and snippets.
+    - AI Image Generator to generate images for the blog, using a soccer match as context.
+    - AI Researcher to generate semantic snippets to enrich the articles.
+  integrations:
+    - sportradar
+  status: available
+  value: "agent-templates/sportingbet-blog"
+  version: 1.0.0
+
+datasets:
+
+  # connectors
+  - type: "connector"
+    path: "../../connectors/bwin/bwin.yml"
+  - type: "connector"
+    path: "../../connectors/machina-ai/machina-ai.yml"
+  - type: "connector"
+    path: "../../connectors/machina-ai-fast/machina-ai-fast.yml"
+  - type: "connector"
+    path: "../../connectors/sportradar-soccer/sportradar-soccer.yml"
+  - type: "connector"
+    path: "../../connectors/sportradar-nba/sportradar-nba.yml"
+  - type: "connector"
+    path: "../../connectors/stability/stability.yml"
+  - type: "connector"
+    path: "../../connectors/storage/storage.yml"
+
+  # workflows
+  - type: "workflow"
+    path: "../../connectors/bwin/sync-markets-odds.yml"
+
+  # populate-folders
+  - type: "workflow"
+    path: "_folders.yml"
+
+  # populate-content
+  # - type: "agent"
+    # path: "agent-producer.yml"
+
+  # mappings
+  - type: "mappings"
+    path: "_mappings.yml"
+  
+  # prompts
+  - type: "prompts"
+    path: "_prompts.yml"
+
+  # # populate-content
+  # - type: "agent"
+  #   path: "_populate.yml"
+
+  # populate-scheduler
+  - type: "agent"
+    path: "_scheduler.yml"
+
+
+
