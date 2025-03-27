@@ -5,8 +5,8 @@ workflow:
   context-variables:
     debugger:
       enabled: true
-    openai:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_OPENAI_API_KEY"
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
   inputs:
     event_code: "$.get('event_code') or None"
   outputs:
@@ -291,7 +291,7 @@ workflow:
       description: "Generate a preview for the upcoming game"
       condition: "$.get('event_exists') is True"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
@@ -314,7 +314,7 @@ workflow:
       description: "Generate a preview for the upcoming game"
       condition: "$.get('event_exists') is True"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:

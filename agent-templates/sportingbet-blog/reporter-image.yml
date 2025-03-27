@@ -1,14 +1,14 @@
 workflow:
-  name: "agent-templates/reporter-image"
+  name: "reporter-image"
   title: "Reporter Image"
   description: "Workflow to create soccer image preview."
   context-variables:
-    openai:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_OPENAI_API_KEY"
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
     stability:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_STABILITY_API_KEY"
+      api_key: "$TEMP_CONTEXT_VARIABLE_STABILITY_API_KEY"
     storage:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_AZURE_BLOB_STRING"
+      api_key: "$TEMP_CONTEXT_VARIABLE_AZURE_BLOB_STRING"
   inputs:
     event_code: "$.get('event_code') or None"
   outputs:
@@ -138,7 +138,7 @@ workflow:
       description: "Generate an image briefing for a soccer match."
       condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
@@ -160,7 +160,7 @@ workflow:
       description: "Generate an image briefing for a nba game."
       condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:

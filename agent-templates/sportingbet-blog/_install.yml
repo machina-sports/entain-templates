@@ -37,29 +37,53 @@ datasets:
   - type: "workflow"
     path: "../../connectors/bwin/sync-markets-odds.yml"
 
-  # populate-folders
+  # workflows
   - type: "workflow"
-    path: "_folders.yml"
+    path: "reporter-article.yml"
+  - type: "workflow"
+    path: "reporter-image.yml"
+  - type: "workflow"
+    path: "research-news.yml"
+  - type: "workflow"
+    path: "research-odds.yml"
+  - type: "workflow"
+    path: "research-stats-nba.yml"
+  - type: "workflow"
+    path: "research-stats-soccer.yml"
+  - type: "workflow"
+    path: "research-team.yml"
+
+  # workflows
+  - type: "workflow"
+    path: "../../connectors/sportradar-soccer/sync-competitions.yml"
+  - type: "workflow"
+    path: "../../connectors/sportradar-soccer/sync-probabilities.yml"
+  - type: "workflow"
+    path: "../../connectors/sportradar-soccer/sync-schedules.yml"
+  - type: "workflow"
+    path: "../../connectors/sportradar-soccer/sync-seasons.yml"
+  - type: "workflow"
+    path: "../../connectors/sportradar-soccer/sync-standings.yml"
+
+  - type: "workflow"
+    path: "../../connectors/sportradar-nba/sync-nba-games.yml"
 
   # populate-content
   # - type: "agent"
     # path: "agent-producer.yml"
 
-  # mappings
+  - type: "workflow"
+    path: "_folders.yml"
+
   - type: "mappings"
     path: "_mappings.yml"
   
-  # prompts
   - type: "prompts"
     path: "_prompts.yml"
 
-  # # populate-content
-  # - type: "agent"
-  #   path: "_populate.yml"
+  - type: "agent"
+    path: "_populate.yml"
 
-  # populate-scheduler
   - type: "agent"
     path: "_scheduler.yml"
-
-
 

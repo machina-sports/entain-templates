@@ -4,7 +4,7 @@ workflow:
   description: "Workflow to synchronize competitions from SportRadar API to Machina."
   context-variables:
     sportradar-soccer:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
+      api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
   outputs:
     competitions: "$.get('competitions')"
     workflow-status: "$.get('should_update') is not True and 'skipped' or 'executed'"
@@ -18,7 +18,7 @@ workflow:
         search-limit: 1
         search-vector: false
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       filters:
@@ -53,7 +53,7 @@ workflow:
         force-update: true
       condition: "$.get('should_update') == True"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       documents:
@@ -76,7 +76,7 @@ workflow:
         embed-vector: false
         force-update: true
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       document_name: "competition"

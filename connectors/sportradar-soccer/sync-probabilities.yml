@@ -4,7 +4,7 @@ workflow:
   description: "Workflow to synchronize a season probabilities from SportRadar API to Machina."
   context-variables:
     sportradar-soccer:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
+      api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
   inputs:
     season_id: "$.get('season_id')"
   outputs:
@@ -21,7 +21,7 @@ workflow:
         search-limit: 1
         search-vector: false
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       filters:
@@ -44,7 +44,7 @@ workflow:
         search-limit: 1
         search-vector: false
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       condition: "$.get('should_update') == True"
@@ -119,7 +119,7 @@ workflow:
         embed-vector: false
         force-update: true
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       documents:
@@ -148,7 +148,7 @@ workflow:
         embed-vector: false
         force-update: true
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       document_name: "probabilities"

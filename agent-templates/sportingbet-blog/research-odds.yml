@@ -3,13 +3,13 @@ workflow:
   title: "Research Odds"
   description: "Workflow to produce odds analysis."
   context-variables:
+    bwin:
+      Bwin-AccessId: "$TEMP_CONTEXT_VARIABLE_BWIN_ACCESS_ID"
+      Bwin-AccessIdToken: "$TEMP_CONTEXT_VARIABLE_BWIN_ACCESS_ID_TOKEN"
     debugger:
       enabled: true
-    sportingbet:
-      Bwin-AccessId: "$MACHINA_CONTEXT_VARIABLE_BWIN_ACCESS_ID"
-      Bwin-AccessIdToken: "$MACHINA_CONTEXT_VARIABLE_BWIN_ACCESS_ID_TOKEN"
-    openai:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_OPENAI_API_KEY"
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
   inputs:
     event_code: "$.get('event_code') or None"
   outputs:
@@ -146,7 +146,7 @@ workflow:
         search-vector: true
       condition: "$.get('event_exists') is True"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       inputs:
@@ -166,7 +166,7 @@ workflow:
       description: "Verify the selected fixture."
       condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
@@ -182,7 +182,7 @@ workflow:
       description: "Get a market by fixture from Sportingbet"
       condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('event_type') == 'soccer-game'"
       connector:
-        name: "sportingbet"
+        name: "bwin"
         command: "get-offer/api/{sportId}/{country}/fixtures"
         command_attribute:
           country: "'br'"
@@ -207,7 +207,7 @@ workflow:
       description: "Get a market by fixture from Sportingbet"
       condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('event_type') == 'nba-game'"
       connector:
-        name: "sportingbet"
+        name: "bwin"
         command: "get-offer/api/{sportId}/{country}/fixtures"
         command_attribute:
           country: "'br'"
@@ -231,7 +231,7 @@ workflow:
       description: "Research match odds."
       condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
@@ -284,7 +284,7 @@ workflow:
         embed-vector: true
         force-update: true
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       document_name: "content-snippet"

@@ -136,46 +136,46 @@ agent:
       outputs:
         sync-markets-odds-europa-league-status: "$.get('workflow-status', False)"
         
-    # # Reporter Editor
-    # - name: "reporter-article"
-    #   description: "Reporter Article"
+    # Reporter Editor
+    - name: "reporter-article"
+      description: "Reporter Article"
+      outputs:
+        reporter-article: "$.get('workflow-status', False)"
+
+    # # Reporter Image
+    # - name: "agent-templates/reporter-image"
+    #   description: "Reporter Image"
     #   outputs:
-    #     reporter-article: "$.get('workflow-status', False)"
+    #     agent-templates/reporter-image: "$.get('workflow-status', False)"
 
-    # # # Reporter Image
-    # # - name: "agent-templates/reporter-image"
-    # #   description: "Reporter Image"
-    # #   outputs:
-    # #     agent-templates/reporter-image: "$.get('workflow-status', False)"
+    # Reporter Odds
+    - name: "research-odds"
+      description: "Reporter Odds"
+      outputs:
+        research-odds: "$.get('workflow-status', False)"
 
-    # # Reporter Odds
-    # - name: "research-odds"
-    #   description: "Reporter Odds"
+    # Reporter Stats
+    - name: "research-stats-soccer"
+      description: "Reporter Soccer Stats"
+      outputs:
+        research-stats-soccer: "$.get('workflow-status', False)"
+        research-odds: "$.get('workflow-status', False)"
+
+    # Reporter Stats
+    - name: "research-stats-nba"
+      description: "Reporter NBA Stats"
+      outputs:
+        research-stats-nba: "$.get('workflow-status', False)"
+
+    # # Reporter Team History
+    # - name: "research-team"
+    #   description: "Reporter Team History"
     #   outputs:
-    #     research-odds: "$.get('workflow-status', False)"
+    #     reporter-team-history: "$.get('workflow-status', False)"
 
-    # # Reporter Stats
-    # - name: "research-stats-soccer"
-    #   description: "Reporter Soccer Stats"
+    # # Reporter Team News
+    # - name: "research-news"
+    #   description: "Reporter Team News"
     #   outputs:
-    #     research-stats-soccer: "$.get('workflow-status', False)"
-    #     research-odds: "$.get('workflow-status', False)"
-
-    # # Reporter Stats
-    # - name: "research-stats-nba"
-    #   description: "Reporter NBA Stats"
-    #   outputs:
-    #     research-stats-nba: "$.get('workflow-status', False)"
-
-    # # # Reporter Team History
-    # # - name: "research-team"
-    # #   description: "Reporter Team History"
-    # #   outputs:
-    # #     reporter-team-history: "$.get('workflow-status', False)"
-
-    # # # Reporter Team News
-    # # - name: "research-news"
-    # #   description: "Reporter Team News"
-    # #   outputs:
-    # #     reporter-team-news: "$.get('workflow-status', False)"
+    #     reporter-team-news: "$.get('workflow-status', False)"
 

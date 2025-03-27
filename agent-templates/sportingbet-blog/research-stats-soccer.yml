@@ -4,11 +4,11 @@ workflow:
   description: "Workflow to produce soccer stats."
   context-variables:
     sportradar-soccer:
-      sportradar_api_key: "$MACHINA_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
+      sportradar_api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
     debugger:
       enabled: true
-    openai:
-      api_key: "$MACHINA_CONTEXT_VARIABLE_OPENAI_API_KEY"
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
   inputs:
     event_code: "$.get('event_code') or None"
   outputs:
@@ -119,7 +119,7 @@ workflow:
       description: "Reporter standings."
       condition: "$.get('event_exists') is True and $.get('season') is not None"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
@@ -210,7 +210,7 @@ workflow:
       description: "Reporter h2h comparison."
       condition: "$.get('event_exists') is True and $.get('season') is not None"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
@@ -272,7 +272,7 @@ workflow:
       description: "Reporter players to watch."
       condition: "$.get('event_exists') is True and $.get('season') is not None"
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
@@ -339,7 +339,7 @@ workflow:
         embed-vector: true
         force-update: true
       connector:
-        name: "openai"
+        name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
       document_name: "content-snippet"
