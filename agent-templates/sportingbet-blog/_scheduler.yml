@@ -142,11 +142,11 @@ agent:
       outputs:
         reporter-article: "$.get('workflow-status', False)"
 
-    # # Reporter Image
-    # - name: "agent-templates/reporter-image"
-    #   description: "Reporter Image"
-    #   outputs:
-    #     agent-templates/reporter-image: "$.get('workflow-status', False)"
+    # Reporter Image
+    - name: "reporter-image"
+      description: "Reporter Image"
+      outputs:
+        reporter-image: "$.get('workflow-status', False)"
 
     # Reporter Odds
     - name: "research-odds"
@@ -166,16 +166,3 @@ agent:
       description: "Reporter NBA Stats"
       outputs:
         research-stats-nba: "$.get('workflow-status', False)"
-
-    # # Reporter Team History
-    # - name: "research-team"
-    #   description: "Reporter Team History"
-    #   outputs:
-    #     reporter-team-history: "$.get('workflow-status', False)"
-
-    # # Reporter Team News
-    # - name: "research-news"
-    #   description: "Reporter Team News"
-    #   outputs:
-    #     reporter-team-news: "$.get('workflow-status', False)"
-
