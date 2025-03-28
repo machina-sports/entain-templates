@@ -29,6 +29,8 @@ mappings:
     description: "Mapping data from sportradar soccer data"
     outputs:
       article_count: "$.get('event_selected', {}).get('version_control', {}).get('article_count', 0)"
+      competition_id: "$.get('event_selected', {}).get('sport_event', {}).get('sport_event_context', {}).get('competition', {}).get('id')"
+      competition_name: "$.get('event_selected', {}).get('sport_event', {}).get('sport_event_context', {}).get('competition', {}).get('name')"
       event_code: "$.get('event_selected', {}).get('sport_event', {}).get('id')"
       image_count: "$.get('event_selected', {}).get('version_control', {}).get('image_count', 0)"
       research_news_count: "$.get('event_selected', {}).get('version_control', {}).get('research_news_count', 0)"
@@ -42,3 +44,13 @@ mappings:
       team_home_id: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[0].get('id')"
       team_away_id: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[1].get('id')"
       title: "$.get('event_selected', {}).get('title')"
+      widget_team_home: "$.get('event_selected', {}).get('widget-team-home')"
+      widget_team_away: "$.get('event_selected', {}).get('widget-team-away')"
+
+  - type: "mapping"
+    title: "Tallysight - Leagues Mapping"
+    name: "tallysight-leagues-mapping"
+    description: "Mapping data from tallysight leagues"
+    outputs:
+      league_code: "next((l.get('slug') for l in $.get('site_leagues') if l.get('id') == $.get('competition_id')), '')"
+

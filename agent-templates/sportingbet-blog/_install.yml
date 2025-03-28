@@ -19,8 +19,6 @@ datasets:
 
   # connectors
   - type: "connector"
-    path: "../../connectors/bwin/bwin.yml"
-  - type: "connector"
     path: "../../connectors/machina-ai/machina-ai.yml"
   - type: "connector"
     path: "../../connectors/machina-ai-fast/machina-ai-fast.yml"
@@ -33,9 +31,17 @@ datasets:
   - type: "connector"
     path: "../../connectors/storage/storage.yml"
 
-  # workflows
+  # bwin
+  - type: "connector"
+    path: "../../connectors/bwin/bwin.yml"
   - type: "workflow"
     path: "../../connectors/bwin/sync-markets-odds.yml"
+
+  # tallysight
+  - type: "connector"
+    path: "../../connectors/tallysight/tallysight.yml"
+  - type: "workflow"
+    path: "../../connectors/tallysight/load-leagues.yml"
 
   # workflows
   - type: "workflow"

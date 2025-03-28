@@ -32,6 +32,44 @@ workflow:
         embed-vector: false
         force-update: true
       documents:
+        site-leagues: |
+          [
+            {
+              "id": "sr:competition:nba",
+              "name": "NBA",
+              "slug": "nba"
+            },
+            {
+              "id": "sr:competition:7",
+              "name": "UEFA Champions League",
+              "slug": "uefa-champions-league"
+            },
+            {
+              "id": "sr:competition:17",
+              "name": "Premier League",
+              "slug": "premier-league"
+            },
+            {
+              "id": "sr:competition:390",
+              "name": "Brasileiro Serie B",
+              "slug": "bra-serie-b"
+            },
+            {
+              "id": "sr:competition:325",
+              "name": "Brasileiro Serie A",
+              "slug": "bra-serie-a"
+            },
+            {
+              "id": "sr:competition:384",
+              "name": "CONMEBOL Libertadores",
+              "slug": "copa-libertadores"
+            },
+            {
+              "id": "sr:competition:480",
+              "name": "CONMEBOL Sudamericana",
+              "slug": "copa-sudamericana"
+            }
+          ]
         setup-register: |
           {
             "setup": True

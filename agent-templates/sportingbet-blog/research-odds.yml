@@ -10,6 +10,8 @@ workflow:
       enabled: true
     machina-ai:
       api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+    tallysight:
+      key: "$TEMP_CONTEXT_VARIABLE_TALLYSIGHT_API_KEY"
   inputs:
     event_code: "$.get('event_code') or None"
   outputs:
@@ -82,6 +84,7 @@ workflow:
       inputs:
         event_selected: "$.get('event_selected')"
       outputs:
+        competition_id: "$.get('competition_id')"
         event_code: "$.get('event_code')"
         odds_count: "$.get('research_odds_count')"
         team_home_name: "$.get('team_home_name')"
@@ -89,6 +92,59 @@ workflow:
         team_home_id: "$.get('team_home_id')"
         team_away_id: "$.get('team_away_id')"
         title: "$.get('title')"
+
+    # load site-leagues
+    - type: "document"
+      name: "load-site-leagues"
+      description: "Search for registered site leagues."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+      inputs:
+        name: "'site-leagues'"
+      outputs:
+        result-site-leagues: "$.get('documents', [])[0].get('value', {}) if $.get('documents') else None"
+
+    # 4 tallysight-leagues-mapping
+    - type: "mapping"
+      name: "tallysight-leagues-mapping"
+      description: "Transform the tallysight leagues data"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      inputs:
+        competition_id: "$.get('competition_id')"
+        site_leagues: "$.get('result-site-leagues')"
+      outputs:
+        league_code: "$.get('league_code')"
+
+    # 5 tallysight-load-team-home
+    - type: "connector"
+      name: "tallysight-load-team-home"
+      description: "Load team from Tallysight"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      connector:
+        name: "tallysight"
+        command: "get-api/v2/widgets/bet-finder/leagues/{league}/teams/{team}"
+        command_attribute:
+          league: "$.get('league_code')"
+          team: "$.get('team_home_name')"
+      outputs:
+        widget-team-home: "$"
+
+    # 6 tallysight-load-team-away
+    - type: "connector"
+      name: "tallysight-load-team-away"
+      description: "Load team from Tallysight"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      connector:
+        name: "tallysight"
+        command: "get-api/v2/widgets/bet-finder/leagues/{league}/teams/{team}"
+        command_attribute:
+          league: "$.get('league_code')"
+          team: "$.get('team_away_name')"
+      outputs:
+        widget-team-away: "$"
 
     # 4 version-control-update (schedule)
     - type: "document"
@@ -306,6 +362,8 @@ workflow:
         soccer-game: |
           {
             **$.get('event_selected'),
+            'widget-team-home': $.get('widget-team-home'),
+            'widget-team-away': $.get('widget-team-away'),
             'version_control': {
               **$.get('event_selected').get('version_control', {}),
               'game-fixture-id': $.get('selected-fixture-id'),

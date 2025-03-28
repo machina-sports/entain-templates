@@ -3,7 +3,7 @@ agent:
   title: "Scheduler Configuration"
   description: "Agent responsible for scheduling workflows."
   context:
-    config-frequency: 0.5
+    config-frequency: 1
   workflows:
         
     # bwin-sync-nba fixtures

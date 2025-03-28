@@ -84,12 +84,15 @@ workflow:
         event_selected: "$.get('event_selected')"
       outputs:
         article_count: "$.get('article_count')"
+        competition_id: "$.get('competition_id')"
         event_code: "$.get('event_code')"
         team_home_name: "$.get('team_home_name')"
         team_away_name: "$.get('team_away_name')"
         team_home_id: "$.get('team_home_id')"
         team_away_id: "$.get('team_away_id')"
         title: "$.get('title')"
+        widget_team_home: "$.get('widget_team_home')"
+        widget_team_away: "$.get('widget_team_away')"
 
     # 4 version-control-update (schedule)
     - type: "document"
@@ -345,9 +348,12 @@ workflow:
           {
             **$.get('reporter-article-br', {}),
             'execution': datetime.utcnow(),
-            'status': 'active'
+            'status': 'active',
+            'widget_team_home': $.get('widget_team_home'),
+            'widget_team_away': $.get('widget_team_away')
           }
       metadata:
+        competition: "$.get('competition_id')"
         document_type: "'content-article'"
         event_code: "$.get('event_code')"
         event_type: "$.get('event_type')"
@@ -367,9 +373,12 @@ workflow:
           {
             **$.get('reporter-article-en', {}),
             'execution': datetime.utcnow(),
-            'status': 'active'
+            'status': 'active',
+            'widget_team_home': $.get('widget_team_home'),
+            'widget_team_away': $.get('widget_team_away')
           }
       metadata:
+        competition: "$.get('competition_id')"
         document_type: "'content-article'"
         event_type: "$.get('event_type')"
         event_code: "$.get('event_code')"
