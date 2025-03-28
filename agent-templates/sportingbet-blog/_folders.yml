@@ -75,7 +75,13 @@ workflow:
             "setup": True
           }
         site-structure: |
-          []
+          [
+            {
+              "title": "Sportingbet Blog",
+              "url": "https://entain-sportingbet-blog.org.machina.gg",
+              "icon": "globe"
+            }
+          ]
         doc-structure: |
           [
             {
