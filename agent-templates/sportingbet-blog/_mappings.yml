@@ -32,6 +32,10 @@ mappings:
       competition_id: "$.get('event_selected', {}).get('sport_event', {}).get('sport_event_context', {}).get('competition', {}).get('id')"
       competition_name: "$.get('event_selected', {}).get('sport_event', {}).get('sport_event_context', {}).get('competition', {}).get('name')"
       event_code: "$.get('event_selected', {}).get('sport_event', {}).get('id')"
+      event_date: |
+        $.get('event_selected', {}).get('start_time').strftime('%Y-%m-%d')
+      event_day_before: |
+        ($.get('event_selected', {}).get('start_time') - timedelta(days=1)).strftime('%Y-%m-%d')
       image_count: "$.get('event_selected', {}).get('version_control', {}).get('image_count', 0)"
       research_news_count: "$.get('event_selected', {}).get('version_control', {}).get('research_news_count', 0)"
       research_odds_count: "$.get('event_selected', {}).get('version_control', {}).get('research_odds_count', 0)"
@@ -44,8 +48,7 @@ mappings:
       team_home_id: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[0].get('id')"
       team_away_id: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[1].get('id')"
       title: "$.get('event_selected', {}).get('title')"
-      widget_team_home: "$.get('event_selected', {}).get('widget-team-home')"
-      widget_team_away: "$.get('event_selected', {}).get('widget-team-away')"
+      widget-match-embed: "$.get('event_selected', {}).get('widget-match-embed')"
 
   - type: "mapping"
     title: "Tallysight - Leagues Mapping"

@@ -99,7 +99,7 @@ prompts:
         section_1_content:
           type: "string"
           description: |
-            Em cerca de 150 palavras, discuta as odds como se estivesse conversando com um amigo em um bar. **Se a partida for de basquete, foque exclusivamente no point spread (não na moneyline) e no total, além de mencionar quaisquer tendências recentes contra o spread que sejam relevantes.** Para outros esportes, siga as diretrizes gerais.
+            Em cerca de 150 palavras, discuta as odds pré-jogo (antes da partida começar) como se estivesse conversando com um amigo em um bar. **Se a partida for de basquete, foque exclusivamente no point spread pré-jogo (não na moneyline) e no total inicial, além de mencionar quaisquer tendências recentes contra o spread que sejam relevantes.** Para outros esportes, siga as diretrizes gerais. Importante: mantenha o foco nas odds iniciais, pois as odds ao vivo serão mostradas em um widget separado.
         section_2_title:
           type: "string"
           description: "[Nome do Time A]"
@@ -184,7 +184,7 @@ prompts:
         section_1_content:
           type: "string"
           description: |
-            In around 150 words, discuss the odds as if you're chatting with a friend at a pub. **If the match is basketball, focus exclusively on the point spread (not the moneyline) and the total, as well as any recent against-the-spread trends that might be helpful.** For other sports, follow the general guidelines.
+            In around 150 words, discuss the pre-game odds (before the match starts) as if you're chatting with a friend at a pub. **If the match is basketball, focus exclusively on the pre-game point spread (not the moneyline) and the initial total, as well as any recent against-the-spread trends that might be helpful.** For other sports, follow the general guidelines. Important: keep the focus on initial odds, as live odds will be shown in a separate widget.
         section_2_title:
           type: "string"
           description: "[Team A]"

@@ -85,7 +85,9 @@ workflow:
         event_selected: "$.get('event_selected')"
       outputs:
         competition_id: "$.get('competition_id')"
+        day_before: "$.get('event_day_before')"
         event_code: "$.get('event_code')"
+        event_date: "$.get('event_date')"
         odds_count: "$.get('research_odds_count')"
         team_home_name: "$.get('team_home_name')"
         team_away_name: "$.get('team_away_name')"
@@ -118,33 +120,38 @@ workflow:
       outputs:
         league_code: "$.get('league_code')"
 
-    # 5 tallysight-load-team-home
+    # 5 tallysight-load-match-embed
     - type: "connector"
-      name: "tallysight-load-team-home"
-      description: "Load team from Tallysight"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      name: "tallysight-load-match-embed"
+      description: "Load match embed from Tallysight"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game' and $.get('widget-match-embed') is None"
+      continue_on_error: True
       connector:
         name: "tallysight"
-        command: "get-api/v2/widgets/bet-finder/leagues/{league}/teams/{team}"
+        command: "get-api/v2/widgets/tiles/gamelines/leagues/{league}/matchup/{team1}/{team2}/{date}"
         command_attribute:
           league: "$.get('league_code')"
-          team: "$.get('team_home_name')"
+          team1: "$.get('team_home_name')"
+          team2: "$.get('team_away_name')"
+          date: "$.get('event_date')"
       outputs:
-        widget-team-home: "$"
+        widget-match-embed: "$"
 
-    # 6 tallysight-load-team-away
+    # 6 tallysight-load-match-embed-day-before
     - type: "connector"
-      name: "tallysight-load-team-away"
-      description: "Load team from Tallysight"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
+      name: "tallysight-load-match-embed-day-before"
+      description: "Load match embed from Tallysight"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game' and $.get('widget-match-embed') is None"
       connector:
         name: "tallysight"
-        command: "get-api/v2/widgets/bet-finder/leagues/{league}/teams/{team}"
+        command: "get-api/v2/widgets/tiles/gamelines/leagues/{league}/matchup/{team1}/{team2}/{date}"
         command_attribute:
           league: "$.get('league_code')"
-          team: "$.get('team_away_name')"
+          team1: "$.get('team_home_name')"
+          team2: "$.get('team_away_name')"
+          date: "$.get('day_before')"
       outputs:
-        widget-team-away: "$"
+        widget-match-embed: "$"
 
     # 4 version-control-update (schedule)
     - type: "document"
@@ -362,8 +369,7 @@ workflow:
         soccer-game: |
           {
             **$.get('event_selected'),
-            'widget-team-home': $.get('widget-team-home'),
-            'widget-team-away': $.get('widget-team-away'),
+            'widget-match-embed': $.get('widget-match-embed'),
             'version_control': {
               **$.get('event_selected').get('version_control', {}),
               'game-fixture-id': $.get('selected-fixture-id'),

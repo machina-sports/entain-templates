@@ -91,8 +91,7 @@ workflow:
         team_home_id: "$.get('team_home_id')"
         team_away_id: "$.get('team_away_id')"
         title: "$.get('title')"
-        widget_team_home: "$.get('widget_team_home')"
-        widget_team_away: "$.get('widget_team_away')"
+        widget-match-embed: "$.get('widget-match-embed')"
 
     # 4 version-control-update (schedule)
     - type: "document"
@@ -349,8 +348,7 @@ workflow:
             **$.get('reporter-article-br', {}),
             'execution': datetime.utcnow(),
             'status': 'active',
-            'widget_team_home': $.get('widget_team_home'),
-            'widget_team_away': $.get('widget_team_away')
+            'widget-match-embed': $.get('widget-match-embed'),
           }
       metadata:
         competition: "$.get('competition_id')"
@@ -374,8 +372,7 @@ workflow:
             **$.get('reporter-article-en', {}),
             'execution': datetime.utcnow(),
             'status': 'active',
-            'widget_team_home': $.get('widget_team_home'),
-            'widget_team_away': $.get('widget_team_away')
+            'widget-match-embed': $.get('widget-match-embed'),
           }
       metadata:
         competition: "$.get('competition_id')"
