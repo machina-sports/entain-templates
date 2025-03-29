@@ -1,6 +1,6 @@
 setup:
-  title: "Chat Completion"
-  description: AI-powered chat completion with personalized recommendations based on betting history.
+  title: "Document Embedding"
+  description: AI-powered document embedding with personalized recommendations based on betting history.
   category:
     - betting-fantasy
     - crm-fan-data
@@ -13,7 +13,7 @@ setup:
   integrations:
     - sportradar
   status: available
-  value: agent-templates/chat-completion
+  value: agent-templates/doc-embedding
   version: 1.0.0
 
 datasets:
@@ -21,19 +21,8 @@ datasets:
   - type: "connector"
     path: "../../connectors/machina-ai/machina-ai.yml"
 
-  - type: "connector"
-    path: "../../connectors/machina-ai-fast/machina-ai-fast.yml"
-
   - type: "prompts"
     path: "_prompts.yml"
 
   - type: "workflow"
-    path: "chat-completions.yml"
-
-  - type: "workflow"
-    path: "thread-executor.yml"
-  
-  - type: "agent"
-    path: "_scheduler.yml"
-
-
+    path: "embedding.yml"

@@ -16,6 +16,22 @@ workflow:
     workflow-status: "$.get('message') is not None and 'executed' or 'skipped'"
   tasks:
 
+    # chat-analysis-prompt
+    - type: "prompt"
+      name: "chat-analysis-prompt"
+      description: "Chat Analysis."
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        messages: "$.get('messages')"
+      outputs:
+        is_faq_question: "$.get('is_faq_question')"
+        is_match_question: "$.get('is_match_question')"
+        is_betting_question: "$.get('is_betting_question')"
+        is_other_question: "$.get('is_other_question')"
+
     # Load similar documents
     - type: "document"
       name: "load-similar-documents"
