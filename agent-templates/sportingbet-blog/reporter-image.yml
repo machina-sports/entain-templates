@@ -46,9 +46,9 @@ workflow:
         search-vector: false
         search-sorters: ["start_time", 1]
       filters:
-        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=48)}"
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=72)}"
         value.version_control.processing: "{'$ne': True}"
-        value.version_control.image_status: "{'$exists': False}"
+        value.version_control.article_image_status: "{'$exists': False}"
       inputs:
         name: "{'$in': ['nba-game', 'soccer-game']}"
       outputs:
@@ -104,7 +104,7 @@ workflow:
             'version_control': {
               **$.get('event_selected').get('version_control', {}),
               'processing': True,
-              'image_status': 'processing'
+              'article_image_status': 'processing'
             }
           }
       metadata:
@@ -126,7 +126,7 @@ workflow:
             'version_control': {
               **$.get('event_selected').get('version_control', {}),
               'processing': True,
-              'image_status': 'processing'
+              'article_image_status': 'processing'
             }
           }
       metadata:
@@ -242,7 +242,7 @@ workflow:
               **$.get('event_selected').get('version_control', {}),
               'processing': False,
               'image_count': $.get('image_count', 0) + 1,
-              'image_status': 'processed',
+              'article_image_status': 'processed',
               'updated': datetime.utcnow()
             }
           }
@@ -266,7 +266,7 @@ workflow:
               **$.get('event_selected').get('version_control', {}),
               'processing': False,
               'image_count': $.get('image_count', 0) + 1,
-              'image_status': 'processed',
+              'article_image_status': 'processed',
               'updated': datetime.utcnow()
             }
           }
