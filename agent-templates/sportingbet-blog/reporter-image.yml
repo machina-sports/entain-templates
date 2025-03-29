@@ -13,7 +13,7 @@ workflow:
     event_code: "$.get('event_code') or None"
   outputs:
     events: "$.get('events')"
-    workflow-status: "$.get('event-exists') is True and 'executed' or 'skipped'"
+    workflow-status: "$.get('event_exists') is True and 'executed' or 'skipped'"
   tasks:
   
     # 0 load-event-by-code
