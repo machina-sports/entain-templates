@@ -1,0 +1,51 @@
+  - type: "prompt"
+    title: "NBA Team Analysis"
+    name: "prompt-nba-competitor-embeddings"
+    description: "Generate structured analysis snippets comparing two teams using their statistical data"
+    schema:
+      title: "NbaCompetitorEmbeddings"
+      description: "Analysis structure for comparing team statistics and performance metrics"
+      type: "object"
+      properties:
+        snippets:
+          type: "array"
+          description: "Analysis snippets based on statistical categories"
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                enum: [
+                  "Offensive Efficiency",
+                  "Defensive Performance",
+                  "Shooting Breakdown",
+                  "Bench Production",
+                  "Pace and Style",
+                  "Recent Form",
+                  "Home/Away Splits",
+                  "Points Distribution"
+                ]
+              content:
+                type: "string"
+                description: |
+                  Statistical analysis using the following data points:
+                  - Offensive: PPG, FG%, 3P%, FT%, paint points
+                  - Defensive: opponent PPG, defensive rating, steals, blocks
+                  - Efficiency: net rating, true shooting %, assist/turnover ratio
+                  - Game Style: bench points, fast break points, rebounds
+                  
+                  Requirements:
+                  1. Use exact numbers from team_stats mapping
+                  2. Compare both teams' metrics directly
+                  3. Highlight significant statistical disparities
+                  4. Focus on betting-relevant insights
+                  5. Avoid generic statements - use specific data points
+                  6. Maximum 3 sentences per snippet
+            required: ["title", "content"]
+          minItems: 6
+          maxItems: 8
+      required: ["snippets"]
+
+    examples:
+      - title: "Offensive Efficiency"
+        content: "Celtics average 117.3 PPG with 58.3% true shooting compared to 76ers' 115.8 PPG at 56.9% TS. Boston's superior 2.11 assist-to-turnover ratio (vs PHI's 1.89) indicates better ball control. Celtics generate more quality looks with 49.92 paint points per game versus Philadelphia's 47.3." 

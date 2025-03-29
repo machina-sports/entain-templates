@@ -54,9 +54,9 @@ workflow:
         event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
         event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
 
-    # 2 sportradar-nba-mapping
+    # 2 sportradar-nba-event-mapping
     - type: "mapping"
-      name: "sportradar-nba-mapping"
+      name: "sportradar-nba-event-mapping"
       description: "Transform the sportradar nba data"
       condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
       inputs:

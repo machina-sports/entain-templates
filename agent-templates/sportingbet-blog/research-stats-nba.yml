@@ -57,9 +57,9 @@ workflow:
         event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
         event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
 
-    # 2 sportradar-nba-mapping
+    # 2 sportradar-nba-event-mapping
     - type: "mapping"
-      name: "sportradar-nba-mapping"
+      name: "sportradar-nba-event-mapping"
       description: "Transform the sportradar nba data"
       condition: "$.get('event_exists') is True"
       inputs:
@@ -97,52 +97,7 @@ workflow:
       metadata:
         event_code: "$.get('event_code')"
 
-    # 4 fetch-event-standings
-    - type: "connector"
-      name: "fetch-event-standings"
-      description: "Get a season standings from SportRadar"
-      condition: "$.get('event_exists') is True"
-      connector:
-        name: "sportradar-nba"
-        command: "get-seasons/{season_year}/{season_type}/{data_type}"
-        command_attribute:
-          season_year: "$.get('season_year')"
-          season_type: "$.get('season_type')"
-          data_type: "'standings.json'"
-      inputs:
-        api_key: "$.get('sportradar_api_key')"
-      outputs:
-        result-standings: "[x for x in $.get('standings') if x.get('type') == 'total']"
-
-    # 5 reporter-standings
-    - type: "prompt"
-      name: "prompt-reporter-standings"
-      description: "Reporter standings."
-      condition: "$.get('event_exists') is True"
-      connector:
-        name: "machina-ai"
-        command: "invoke_prompt"
-        model: "gpt-4o"
-      inputs:
-        title: "$.get('title')"
-        standings: "$.get('result-standings')"
-      outputs:
-        research-standings: "$"
-        research-standings-bulk: |
-          [
-            {
-              'subject': '$.(title)',
-              'text': c.get('content', ''),
-              'title': f"$.(title) - {c.get('title', '')}",
-              'metadata': {
-                'event_code': '$.(event_code)',
-                'language': 'en'
-              }
-            }
-            for c in $.get('snippets', [])
-          ]
-
-    # 6 fetch-home-competitor
+    # 4 fetch-home-competitor
     - type: "connector"
       name: "fetch-home-competitor"
       description: "Get a competitor data from SportRadar" 
@@ -160,60 +115,22 @@ workflow:
       outputs:
         result-home-competitor: "$"
 
-    # 7 fetch-home-team-profile
-    - type: "connector"
-      name: "fetch-home-team-profile"
-      description: "Get a team profile from SportRadar" 
+    # 5 sportradar-nba-competitor-mapping
+    - type: "mapping"
+      name: "sportradar-nba-competitor-mapping"
+      description: "Transform the sportradar nba data"
       condition: "$.get('event_exists') is True"
-      connector:
-        name: "sportradar-nba"
-        command: "get-teams/{team_id}/{data_type}"
-        command_attribute:
-          team_id: "$.get('team_home_id')"
-          data_type: "'profile.json'"
       inputs:
-        api_key: "$.get('sportradar_api_key')"
+        competitor: "$.get('result-home-competitor')"
       outputs:
-        result-home-team-profile: "$"
+        own_record: "$.get('own_record', {})"
+        opponents_record: "$.get('opponents_record', {})"
+        players: "$.get('players', [])"
 
-    # 8 fetch-away-competitor
-    - type: "connector"
-      name: "fetch-away-competitor"
-      description: "Get a competitor data from SportRadar" 
-      condition: "$.get('event_exists') is True"
-      connector:
-        name: "sportradar-nba"
-        command: "get-seasons/{season_year}/{season_type}/teams/{team_id}/{data_type}"
-        command_attribute:
-          season_year: "$.get('season_year')"
-          season_type: "$.get('season_type')"
-          team_id: "$.get('team_away_id')"
-          data_type: "'statistics.json'"
-      inputs:
-        api_key: "$.get('sportradar_api_key')"
-      outputs:
-        result-away-competitor: "$"
-
-    # 9 fetch-away-team-profile
-    - type: "connector"
-      name: "fetch-away-team-profile"
-      description: "Get a team profile from SportRadar" 
-      condition: "$.get('event_exists') is True"
-      connector:
-        name: "sportradar-nba"
-        command: "get-teams/{team_id}/{data_type}"
-        command_attribute:
-          team_id: "$.get('team_away_id')"
-          data_type: "'profile.json'"
-      inputs:
-        api_key: "$.get('sportradar_api_key')"
-      outputs:
-        result-away-team-profile: "$"
-
-    # 10 reporter-comparison
+    # 6 prompt-nba-competitor-embeddings
     - type: "prompt"
-      name: "prompt-reporter-comparison"
-      description: "Reporter h2h comparison."
+      name: "prompt-nba-competitor-embeddings"
+      description: "Generate structured analysis snippets comparing two teams using their statistical data"
       condition: "$.get('event_exists') is True"
       connector:
         name: "machina-ai"
@@ -221,12 +138,12 @@ workflow:
         model: "gpt-4o"
       inputs:
         title: "$.get('title')"
-        home-competitor: "$.get('result-home-competitor')"
-        away-competitor: "$.get('result-away-competitor')"
-        # comparison: "$.get('result-comparison')"
+        own_record: "$.get('own_record', {})"
+        opponents_record: "$.get('opponents_record', {})"
+        players: "$.get('players', [])"
       outputs:
-        research-comparison: "$"
-        research-comparison-bulk: |
+        home-competitor-embeddings: "$"
+        home-competitor-embeddings-bulk: |
           [
             {
               'subject': '$.(title)',
@@ -240,110 +157,109 @@ workflow:
             for c in $.get('snippets', [])
           ]
 
-    # 11 update-team-profile-home
-    - type: "document"
-      name: "update-documents-team-profile-home"
-      description: "Update the documents."
-      condition: "$.get('event_exists') is True"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        team-profile: |
-          {
-            "execution": datetime.utcnow(),
-            "content": $.get('result-home-team-profile'),
-            "title": f"{$.get('team_home_name')} - Team Profile",
-            "status": 'active'
-          }
-      metadata:
-        event_code: "$.get('event_code')"
-        team_id: "$.get('team_home_id')"
+    # # 6 fetch-away-competitor
+    # - type: "connector"
+    #   name: "fetch-away-competitor"
+    #   description: "Get a competitor data from SportRadar" 
+    #   condition: "$.get('event_exists') is True"
+    #   connector:
+    #     name: "sportradar-nba"
+    #     command: "get-seasons/{season_year}/{season_type}/teams/{team_id}/{data_type}"
+    #     command_attribute:
+    #       season_year: "$.get('season_year')"
+    #       season_type: "$.get('season_type')"
+    #       team_id: "$.get('team_away_id')"
+    #       data_type: "'statistics.json'"
+    #   inputs:
+    #     api_key: "$.get('sportradar_api_key')"
+    #   outputs:
+    #     result-away-competitor: "$"
 
-    # 12 update-team-profile-away
-    - type: "document"
-      name: "update-documents-team-profile-away"
-      description: "Update the documents."
-      condition: "$.get('event_exists') is True"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        team-profile: |
-          {
-            "execution": datetime.utcnow(),
-            "content": $.get('result-away-team-profile'),
-            "title": f"{$.get('team_away_name')} - Team Profile",
-            "status": 'active'
-          }
-      metadata:
-        event_code: "$.get('event_code')"
-        team_id: "$.get('team_away_id')"
+    # # 10 reporter-comparison
+    # - type: "prompt"
+    #   name: "prompt-reporter-comparison"
+    #   description: "Reporter h2h comparison."
+    #   condition: "$.get('event_exists') is True"
+    #   connector:
+    #     name: "machina-ai"
+    #     command: "invoke_prompt"
+    #     model: "gpt-4o"
+    #   inputs:
+    #     title: "$.get('title')"
+    #     home-competitor: "$.get('result-home-competitor')"
+    #     away-competitor: "$.get('result-away-competitor')"
+    #     # comparison: "$.get('result-comparison')"
+    #   outputs:
+    #     research-comparison: "$"
+    #     research-comparison-bulk: |
+    #       [
+    #         {
+    #           'subject': '$.(title)',
+    #           'text': c.get('content', ''),
+    #           'title': f"$.(title) - {c.get('title', '')}",
+    #           'metadata': {
+    #             'event_code': '$.(event_code)',
+    #             'language': 'en'
+    #           }
+    #         }
+    #         for c in $.get('snippets', [])
+    #       ]
 
     # 13 players-to-watch
-    - type: "prompt"
-      name: "prompt-reporter-players-to-watch"
-      description: "Reporter players to watch."
-      condition: "$.get('event_exists') is True"
-      connector:
-        name: "machina-ai"
-        command: "invoke_prompt"
-        model: "gpt-4o"
-      inputs:
-        title: "$.get('title')"
-        home-competitor-profile: "$.get('result-home-team-profile')"
-        away-competitor-profile: "$.get('result-away-team-profile')"
-      outputs:
-        research-players-to-watch: "$"
-        research-players-to-watch-bulk: |
-          [
-            {
-              'subject': '$.(title)', 
-              'text': c.get('content', ''),
-              'title': f"$.(title) - {c.get('title', '')}",
-              'metadata': {
-                'event_code': '$.(event_code)',
-                'language': 'en'
-              } 
-            }
-            for c in $.get('snippets', [])
-          ]
+    # - type: "prompt"
+    #   name: "prompt-reporter-players-to-watch"
+    #   description: "Reporter players to watch."
+    #   condition: "$.get('event_exists') is True"
+    #   connector:
+    #     name: "machina-ai"
+    #     command: "invoke_prompt"
+    #     model: "gpt-4o"
+    #   inputs:
+    #     title: "$.get('title')"
+    #     home-competitor-profile: "$.get('result-home-team-profile')"
+    #     away-competitor-profile: "$.get('result-away-team-profile')"
+    #   outputs:
+    #     research-players-to-watch: "$"
+    #     research-players-to-watch-bulk: |
+    #       [
+    #         {
+    #           'subject': '$.(title)', 
+    #           'text': c.get('content', ''),
+    #           'title': f"$.(title) - {c.get('title', '')}",
+    #           'metadata': {
+    #             'event_code': '$.(event_code)',
+    #             'language': 'en'
+    #           } 
+    #         }
+    #         for c in $.get('snippets', [])
+    #       ]
 
     # 14 update-documents
-    - type: "document"
-      name: "update-documents-standings"
-      description: "Update the documents."
-      condition: "$.get('event_exists') is True"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        standings-analysis: |
-          {
-            "execution": datetime.utcnow(),
-            "content": $.get('research-standings'),
-            "title": f"{$.get('title')} - Standings Analysis",
-            "status": 'active'
-          }
-        comparison-analysis: |
-          {
-            "execution": datetime.utcnow(),
-            "content": $.get('research-comparison'),
-            "title": f"{$.get('title')} - Comparison Analysis",
-            "status": 'active'
-          }
-        players-to-watch: |
-          {
-            "execution": datetime.utcnow(),
-            "content": $.get('research-players-to-watch'),
-            "title": f"{$.get('title')} - Players to Watch",
-            "status": 'active'
-          }
-      metadata:
-        event_code: "$.get('event_code')"
+    # - type: "document"
+    #   name: "update-documents-standings"
+    #   description: "Update the documents."
+    #   condition: "$.get('event_exists') is True"
+    #   config:
+    #     action: "update"
+    #     embed-vector: false
+    #     force-update: true
+    #   documents:
+    #     comparison-analysis: |
+    #       {
+    #         "execution": datetime.utcnow(),
+    #         "content": $.get('research-comparison'),
+    #         "title": f"{$.get('title')} - Comparison Analysis",
+    #         "status": 'active'
+    #       }
+    #     players-to-watch: |
+    #       {
+    #         "execution": datetime.utcnow(),
+    #         "content": $.get('research-players-to-watch'),
+    #         "title": f"{$.get('title')} - Players to Watch",
+    #         "status": 'active'
+    #       }
+    #   metadata:
+    #     event_code: "$.get('event_code')"
     
     # 15 update-snippets
     - type: "document"
@@ -364,9 +280,7 @@ workflow:
       inputs:
         parsed-items: |
           [
-            *$.get('research-standings-bulk', []),
-            *$.get('research-comparison-bulk', []),
-            *$.get('research-players-to-watch-bulk', [])
+            *$.get('home-competitor-embeddings-bulk', [])
           ]
 
     # 16 version-control-success-nba-game

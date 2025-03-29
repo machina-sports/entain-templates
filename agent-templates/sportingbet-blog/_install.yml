@@ -85,7 +85,9 @@ datasets:
     path: "_mappings.yml"
   
   - type: "prompts"
-    path: "_prompts.yml"
+    path: "prompt-articles.yml"
+  - type: "prompts"
+    path: "prompt-research.yml"
 
   - type: "agent"
     path: "_populate.yml"

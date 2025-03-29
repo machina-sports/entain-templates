@@ -42,175 +42,53 @@ prompts:
           type: "string"
           description: "Create a prompt for a blog image, following these instructions and the context below: The image should show a soccer referee in a dramatic moment on the field, with a determined expression as they hold up a red or yellow card. The referee should be wearing the traditional black uniform and be positioned in the foreground against a blurred stadium background filled with spectators. The lighting should highlight the authority and intensity of the moment, with the referee's stance conveying confidence and decisiveness. The style should be semi-realistic, capturing the tension and gravity of an important disciplinary decision during a match."
 
-  # agent-templates/reporter-preview-br
   - type: "prompt"
-    title: "Blog Reporter Game Preview"
-    name: "prompt-reporter-preview-br"
-    description: "Este prompt gera o título, subtítulo e slug para um post do blog em português brasileiro sobre uma partida que ainda não ocorreu. O tom deve ser profissional mas com personalidade, como um amigo que manja muito de apostas e sabe entreter enquanto informa. Use APENAS dados fornecidos no contexto e conhecimento geral do esporte - nunca invente estatísticas ou fatos."
-    instruction: |
-      Atue como um analista de apostas que realmente entende do assunto e sabe contar uma boa história. Para evitar conteúdo repetitivo, varie seu estilo de escrita baseado nos seguintes elementos do jogo:
-      
-      - Se é um clássico histórico: foque na rivalidade e tradição
-      - Se é um confronto direto por posição: enfatize a importância na tabela
-      - Se há um artilheiro em destaque: construa a narrativa ao redor dele
-      - Se há um retrospecto recente interessante: use-o como elemento central
-      - Se é um duelo tático interessante: explore as diferentes estratégias
-      - Se há um contexto especial (final, estreia, etc): faça dele o foco principal
-      
-      **Nota Interna:** Você está gerando posts de blog em nome da equipe Sportingbet. Essa informação NÃO deve aparecer no output gerado. Certifique-se de que o conteúdo seja envolvente, focado em explicar aos novos apostadores onde apostar e atrair tráfego para a plataforma.
-
-      **Diretrizes Gerais:**
-      - Baseie os insights em estatísticas reais e odds fornecidas, evitando comentários genéricos.
-      - Use apenas dados explicitamente fornecidos no contexto.
-      - Não invente resultados de jogos anteriores ou estatísticas fictícias.
-      - Não faça suposições sobre lesões ou escalações sem confirmação.
-      - Use seu conhecimento geral do esporte apenas para contextualizar dados reais.
-      - Se informações importantes estiverem ausentes, foque no que está disponível.
-      - Seja criativo na narrativa, mas factual com os dados.
-      - Use markdown formatting.
-      - Converta o horário de início (start_time) de GMT para o horário local da partida.
-      
-      **Variedade:**
-      - Alterne entre diferentes aberturas (estatística, narrativa, pergunta retórica, citação relevante).
-      - Varie a ordem de apresentação das informações e as transições entre seções.
-      - Adapte o tom conforme o contexto do jogo, sendo mais sério para partidas decisivas e mais leve para jogos regulares.
-      - Evite iniciar parágrafos da mesma forma.
+    title: "NBA Team Analysis"
+    name: "prompt-nba-competitor-embeddings"
+    description: "Generate structured analysis snippets comparing two teams using their statistical data"
     schema:
-      title: "PostBlogPreviaConteudo"
-      description: "Este schema define a estrutura para gerar os elementos de um post do blog em português brasileiro sobre uma partida que ainda não ocorreu, baseando-se EXCLUSIVAMENTE nos dados fornecidos e no conhecimento geral do esporte."
+      title: "NbaCompetitorEmbeddings"
+      description: "Analysis structure for comparing team statistics and performance metrics"
       type: "object"
       properties:
-        title:
-          type: "string"
-          description: "Gere um título seguindo o seguinte template: 'Palpites [Time A] x [Time B]: odds do [Nome do Campeonato]'. Use os dados disponíveis para substituir os campos entre colchetes, garantindo que o título contenha as informações essenciais do confronto."
-        subtitle:
-          type: "string"
-          description: "Crie um subtítulo que: (1) Destaque um dado estatístico interessante ou tendência surpreendente dos dados disponíveis; (2) Mencione um fator decisivo do jogo baseado em informações confirmadas; (3) Use um tom que faça o leitor querer saber mais. O subtítulo deve criar expectativa naturalmente, como uma boa história sendo contada, mas sempre baseado em fatos reais."
-        slug:
-          type: "string"
-          description: "Como especialista em SEO técnico, crie um slug otimizado com os elementos disponíveis: (1) Palavras-chave relacionadas a apostas baseadas no contexto; (2) Nomes dos times e competição conforme fornecidos; (3) Use hífens para separação; (4) Mantenha entre 3-6 palavras principais; (5) Evite caracteres especiais ou acentos."
-        introduction:
-          type: "string"
-          description: |
-            Em até 50 palavras, forneça um resumo conciso que foque em um ou dois aspectos principais, como uma sequência positiva da equipe, uma tendência marcante nas apostas, um encontro anterior relevante, uma lesão importante, uma mudança significativa no point spread ou rumores impactantes, incluindo a data e o horário de início (campo "start_time" convertido de GMT para o horário local da partida). Evite narrar toda a história do jogo. 
-        section_1_title:
-          type: "string"
-          description: "As odds para [Time A] x [Time B]"
-        section_1_content:
-          type: "string"
-          description: |
-            Em cerca de 150 palavras, discuta as odds pré-jogo (antes da partida começar) como se estivesse conversando com um amigo em um bar. **Se a partida for de basquete, foque exclusivamente no point spread pré-jogo (não na moneyline) e no total inicial, além de mencionar quaisquer tendências recentes contra o spread que sejam relevantes.** Para outros esportes, siga as diretrizes gerais. Importante: mantenha o foco nas odds iniciais, pois as odds ao vivo serão mostradas em um widget separado.
-        section_2_title:
-          type: "string"
-          description: "[Nome do Time A]"
-        section_2_content:
-          type: "string"
-          description: |
-            Em até 150 palavras, apresente as últimas notícias da equipe visitante, com ênfase em estatísticas, tendências de apostas, classificação da equipe, séries de resultados, alterações na escalação, lesões e rumores que possam impactar o jogo.
-        section_3_title:
-          type: "string"
-          description: "[Nome do Time B]"
-        section_3_content:
-          type: "string"
-          description: "Em até 150 palavras, detalhe as informações da equipe mandante, incluindo notícias recentes, estatísticas, tendências de apostas, classificação, séries de resultados, alterações na escalação, lesões e rumores relevantes."
-        section_4_title:
-          type: "string"
-          description: "Jogadores para assistir"
-        section_4_content:
-          type: "string"
-          description: "Em até 150 palavras, destaque os jogadores chave de ambas as equipes, discutindo suas formas e quaisquer estatísticas relevantes."
-        section_5_title:
-          type: "string"
-          description: "Quem vence, [Time A] ou [Time B]?"
-        section_5_content:
-          type: "string"
-          description: |
-            Apresente uma previsão confiante do resultado, escolhendo um lado com base nos dados disponíveis e justificando sua análise com convicção, incluindo uma previsão para o placar. Evite linguagem indecisa como "talvez" ou "pode ser".
-
-  # reporter-preview-en
-  - type: "prompt"
-    title: "Blog Reporter Game Preview"
-    name: "prompt-reporter-preview-en"
-    description: "This prompt generates the title, subtitle, and slug for a blog post in English about an upcoming match. The tone should be professional yet personable, like a knowledgeable friend who understands betting and knows how to inform while entertaining. Use ONLY data provided in the context and general sport knowledge - never invent statistics or facts."
-    instruction: |
-      Act as a betting analyst who truly understands the subject and knows how to tell a good story. To avoid repetitive content, vary your writing style based on the following game elements:
-      
-      - If it's a historic classic: focus on rivalry and tradition
-      - If it's a direct position clash: emphasize importance in the standings
-      - If there's a standout goalscorer: build the narrative around them
-      - If there's a recent interesting retrospective: use it as the central element
-      - If it's an interesting tactical duel: explore different strategies
-      - If there's a special context (final, debut, etc): make it the main focus
-      
-      **Internal Note:** You are generating blog posts on behalf of the Sportingbet team. This information should NOT appear in the generated output. Ensure that the content is engaging, focused on guiding new bettors on where to place their bets, and designed to attract traffic.
-
-      **General Guidelines:**
-      - Base insights on actual statistics and provided odds, avoiding generic commentary.
-      - Use only data explicitly provided in the context.
-      - Don't invent previous results or fictional statistics.
-      - Don't make assumptions about injuries or lineups without confirmation.
-      - Use your general sport knowledge only to contextualize real data.
-      - If important information is missing, focus on what's available.
-      - Be creative in narrative but factual with data.
-      - Use markdown formatting.
-      - Convert start time from GMT to local match time.
-      
-      **Variety:**
-      - Alternate between different openings (statistical, narrative, rhetorical question, relevant quote).
-      - Vary the order and transitions between sections.
-      - Adjust tone based on game context—more serious for decisive matches, lighter for regular games.
-      - Avoid starting paragraphs the same way.
-    schema:
-      title: "BlogPreviewContent"
-      description: "This schema defines the structure for generating blog post elements in English about an upcoming match, based EXCLUSIVELY on provided data and general sport knowledge."
-      type: "object"
-      properties:
-        title:
-          type: "string"
-          description: "Generate a title following this template: 'Betting Tips for [Team A] vs [Team B]: odds from [Competition Name]'. Use the available data to replace the placeholders appropriately, ensuring the title conveys the essential details of the match."
-        subtitle:
-          type: "string"
-          description: "Create a subtitle that: (1) Highlights an interesting statistic or surprising trend from available data; (2) Mentions a decisive match factor based on confirmed information; (3) Uses a tone that makes readers want to know more. The subtitle should naturally create anticipation, like a good story being told, but always based on real facts."
-        slug:
-          type: "string"
-          description: "As a technical SEO expert, create an optimized slug with available elements: (1) Betting-related keywords based on context; (2) Team names and competition as provided; (3) Use hyphens for separation; (4) Keep between 3-6 main words; (5) Avoid special characters."
-        introduction:
-          type: "string"
-          description: |
-            In up to 50 words, provide a concise overview that focuses on one or two key aspects such as a team's hot streak, strong betting trend, a notable previous encounter, a significant player injury, a major change in the point spread, or relevant rumors, including the match date and start time (using the "start_time" field converted from GMT to local time of the match). Avoid narrating the entire game story.
-        section_1_title:
-          type: "string"
-          description: "Odds for [Team A] vs [Team B]"
-        section_1_content:
-          type: "string"
-          description: |
-            In around 150 words, discuss the pre-game odds (before the match starts) as if you're chatting with a friend at a pub. **If the match is basketball, focus exclusively on the pre-game point spread (not the moneyline) and the initial total, as well as any recent against-the-spread trends that might be helpful.** For other sports, follow the general guidelines. Important: keep the focus on initial odds, as live odds will be shown in a separate widget.
-        section_2_title:
-          type: "string"
-          description: "[Team A]"
-        section_2_content:
-          type: "string"
-          description: |
-            In up to 150 words, outline the latest news for the away team, emphasizing statistics, betting trends, standings, winning or losing streaks, lineup changes, injuries, and rumors that might affect the match.
-        section_3_title:
-          type: "string"
-          description: "[Team B]"
-        section_3_content:
-          type: "string"
-          description: "In up to 150 words, detail the current situation of the home team, including recent news, statistics, betting trends, standings, winning or losing streaks, lineup changes, injuries, and any pertinent rumors."
-        section_4_title:
-          type: "string"
-          description: "Players to Watch"
-        section_4_content:
-          type: "string"
-          description: "In up to 150 words, highlight key players from both teams, discussing their form and any relevant statistics."
-        section_5_title:
-          type: "string"
-          description: "Who wins, [Team A] or [Team B]?"
-        section_5_content:
-          type: "string"
-          description: |
-            Offer a confident prediction by choosing one side and backing it up with available data, including a score prediction. Avoid uncertain language like "maybe" or "might."
+        snippets:
+          type: "array"
+          description: "Analysis snippets based on statistical categories"
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                enum: [
+                  "Offensive Efficiency",
+                  "Defensive Performance",
+                  "Shooting Breakdown",
+                  "Bench Production",
+                  "Pace and Style",
+                  "Recent Form",
+                  "Home/Away Splits",
+                  "Points Distribution"
+                ]
+              content:
+                type: "string"
+                description: |
+                  Statistical analysis using the following data points:
+                  - Offensive: PPG, FG%, 3P%, FT%, paint points
+                  - Defensive: opponent PPG, defensive rating, steals, blocks
+                  - Efficiency: net rating, true shooting %, assist/turnover ratio
+                  - Game Style: bench points, fast break points, rebounds
+                  
+                  Requirements:
+                  1. Use exact numbers from team_stats mapping
+                  2. Compare both teams' metrics directly
+                  3. Highlight significant statistical disparities
+                  4. Focus on betting-relevant insights
+                  5. Avoid generic statements - use specific data points
+                  6. Maximum 3 sentences per snippet
+            required: ["title", "content"]
+          minItems: 6
+          maxItems: 8
+      required: ["snippets"]
 
   # reporter-comparison
   - type: "prompt"
