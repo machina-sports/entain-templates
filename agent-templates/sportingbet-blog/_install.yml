@@ -49,6 +49,8 @@ datasets:
   - type: "workflow"
     path: "reporter-image.yml"
   - type: "workflow"
+    path: "reporter-nba.yml"
+  - type: "workflow"
     path: "research-news.yml"
   - type: "workflow"
     path: "research-odds.yml"

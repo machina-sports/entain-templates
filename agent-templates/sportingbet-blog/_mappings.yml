@@ -48,29 +48,28 @@ mappings:
       own_record: "$.get('competitor', {}).get('own_record', {})"
       opponents_record: "$.get('competitor', {}).get('opponents', {})"
       players: "$.get('competitor', {}).get('players', [])"
-      team_stats:
-        offensive: |
-          {
+      team_stats: |
+        {
+          "offensive": {
             "ppg": "$.get('competitor', {}).get('own_record', {}).get('average', {}).get('points')",
             "fg_pct": "$.get('competitor', {}).get('own_record', {}).get('total', {}).get('field_goals_pct')",
             "three_pct": "$.get('competitor', {}).get('own_record', {}).get('total', {}).get('three_points_pct')",
             "ft_pct": "$.get('competitor', {}).get('own_record', {}).get('total', {}).get('free_throws_pct')",
             "paint_points": "$.get('competitor', {}).get('own_record', {}).get('average', {}).get('points_in_paint')",
             "bench_points": "$.get('competitor', {}).get('own_record', {}).get('average', {}).get('bench_points')"
-          }
-        defensive: |
-          {
+          },
+          "defensive": {
             "def_rating": "$.get('competitor', {}).get('own_record', {}).get('total', {}).get('defensive_rating')",
             "steals_pg": "$.get('competitor', {}).get('own_record', {}).get('average', {}).get('steals')",
             "blocks_pg": "$.get('competitor', {}).get('own_record', {}).get('average', {}).get('blocks')",
             "opp_ppg": "$.get('competitor', {}).get('opponents', {}).get('average', {}).get('points')"
-          }
-        efficiency: |
-          {
+          },
+          "efficiency": {
             "net_rating": "$.get('competitor', {}).get('own_record', {}).get('total', {}).get('net_rating')",
             "true_shooting": "$.get('competitor', {}).get('own_record', {}).get('total', {}).get('true_shooting_pct')",
             "assist_to_turnover": "$.get('competitor', {}).get('own_record', {}).get('total', {}).get('assists_turnover_ratio')"
           }
+        }
 
   - type: "mapping"
     title: "Sportradar Soccer Mapping"

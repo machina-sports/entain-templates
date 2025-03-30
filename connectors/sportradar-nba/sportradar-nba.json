@@ -193,6 +193,37 @@
         }
       }
     },
+    "/league/injuries.json": {
+      "get": {
+        "summary": "Get information about injuries",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "api_key",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "security": [
+          {
+            "apiKey": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/seasons/{season_year}/{season_type}/{data_type}": {
       "get": {
         "summary": "Get information about seasons from a season",

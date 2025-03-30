@@ -115,7 +115,7 @@ workflow:
       outputs:
         result-home-competitor: "$"
 
-    # 5 sportradar-nba-competitor-mapping
+    # 5 sportradar-nba-competitor-mapping (home)
     - type: "mapping"
       name: "sportradar-nba-competitor-mapping"
       description: "Transform the sportradar nba data"
@@ -123,11 +123,11 @@ workflow:
       inputs:
         competitor: "$.get('result-home-competitor')"
       outputs:
-        own_record: "$.get('own_record', {})"
-        opponents_record: "$.get('opponents_record', {})"
-        players: "$.get('players', [])"
+        home_own_record: "$.get('own_record', {})"
+        home_opponents_record: "$.get('opponents_record', {})"
+        home_players: "$.get('players', [])"
 
-    # 6 prompt-nba-competitor-embeddings
+    # 6 prompt-nba-competitor-embeddings (home)
     - type: "prompt"
       name: "prompt-nba-competitor-embeddings"
       description: "Generate structured analysis snippets comparing two teams using their statistical data"
@@ -137,10 +137,8 @@ workflow:
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
-        title: "$.get('title')"
-        own_record: "$.get('own_record', {})"
-        opponents_record: "$.get('opponents_record', {})"
-        players: "$.get('players', [])"
+        home_own_record: "$.get('home_own_record', {})"
+        home_team_name: "$.get('team_home_name')"
       outputs:
         home-competitor-embeddings: "$"
         home-competitor-embeddings-bulk: |
@@ -148,120 +146,295 @@ workflow:
             {
               'subject': '$.(title)',
               'text': c.get('content', ''),
-              'title': f"$.(title) - {c.get('title', '')}",
+              'title': f"$.(team_home_name) - {c.get('title', '')}",
               'metadata': {
+                'content_type': 'competitor',
                 'event_code': '$.(event_code)',
+                'team_name': '$.(team_home_name)',
+                'team_id': '$.(team_home_id)',
                 'language': 'en'
               }
             }
             for c in $.get('snippets', [])
           ]
 
-    # # 6 fetch-away-competitor
-    # - type: "connector"
-    #   name: "fetch-away-competitor"
-    #   description: "Get a competitor data from SportRadar" 
-    #   condition: "$.get('event_exists') is True"
-    #   connector:
-    #     name: "sportradar-nba"
-    #     command: "get-seasons/{season_year}/{season_type}/teams/{team_id}/{data_type}"
-    #     command_attribute:
-    #       season_year: "$.get('season_year')"
-    #       season_type: "$.get('season_type')"
-    #       team_id: "$.get('team_away_id')"
-    #       data_type: "'statistics.json'"
-    #   inputs:
-    #     api_key: "$.get('sportradar_api_key')"
-    #   outputs:
-    #     result-away-competitor: "$"
+    # 7 prompt-nba-players-embeddings (home)
+    - type: "prompt"
+      name: "prompt-nba-players-embeddings"
+      description: "Generate structured analysis snippets for a single team using their players data"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      foreach:
+        name: "player"
+        expr: "$"
+        value: "$.get('home_players')[:5]"
+      inputs:
+        home_team_name: "$.get('team_home_name')"
+        home_player: "$.get('player')"
+        home_player_name: "$.get('player').get('full_name')"
+      outputs:
+        home-players-embeddings-bulk: |
+          [
+            { 
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(home_player_name) ($.(team_home_name)) - {c.get('title', '')}",
+              'metadata': {
+                'content_type': 'player',
+                'event_code': '$.(event_code)',
+                'team_name': '$.(team_home_name)',
+                'team_id': '$.(team_home_id)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
 
-    # # 10 reporter-comparison
-    # - type: "prompt"
-    #   name: "prompt-reporter-comparison"
-    #   description: "Reporter h2h comparison."
-    #   condition: "$.get('event_exists') is True"
-    #   connector:
-    #     name: "machina-ai"
-    #     command: "invoke_prompt"
-    #     model: "gpt-4o"
-    #   inputs:
-    #     title: "$.get('title')"
-    #     home-competitor: "$.get('result-home-competitor')"
-    #     away-competitor: "$.get('result-away-competitor')"
-    #     # comparison: "$.get('result-comparison')"
-    #   outputs:
-    #     research-comparison: "$"
-    #     research-comparison-bulk: |
-    #       [
-    #         {
-    #           'subject': '$.(title)',
-    #           'text': c.get('content', ''),
-    #           'title': f"$.(title) - {c.get('title', '')}",
-    #           'metadata': {
-    #             'event_code': '$.(event_code)',
-    #             'language': 'en'
-    #           }
-    #         }
-    #         for c in $.get('snippets', [])
-    #       ]
+    # 8 fetch-away-competitor
+    - type: "connector"
+      name: "fetch-away-competitor"
+      description: "Get a competitor data from SportRadar" 
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "sportradar-nba"
+        command: "get-seasons/{season_year}/{season_type}/teams/{team_id}/{data_type}"
+        command_attribute:
+          season_year: "$.get('season_year')"
+          season_type: "$.get('season_type')"
+          team_id: "$.get('team_away_id')"
+          data_type: "'statistics.json'"
+      inputs:
+        api_key: "$.get('sportradar_api_key')"
+      outputs:
+        result-away-competitor: "$"
 
-    # 13 players-to-watch
-    # - type: "prompt"
-    #   name: "prompt-reporter-players-to-watch"
-    #   description: "Reporter players to watch."
-    #   condition: "$.get('event_exists') is True"
-    #   connector:
-    #     name: "machina-ai"
-    #     command: "invoke_prompt"
-    #     model: "gpt-4o"
-    #   inputs:
-    #     title: "$.get('title')"
-    #     home-competitor-profile: "$.get('result-home-team-profile')"
-    #     away-competitor-profile: "$.get('result-away-team-profile')"
-    #   outputs:
-    #     research-players-to-watch: "$"
-    #     research-players-to-watch-bulk: |
-    #       [
-    #         {
-    #           'subject': '$.(title)', 
-    #           'text': c.get('content', ''),
-    #           'title': f"$.(title) - {c.get('title', '')}",
-    #           'metadata': {
-    #             'event_code': '$.(event_code)',
-    #             'language': 'en'
-    #           } 
-    #         }
-    #         for c in $.get('snippets', [])
-    #       ]
+    # 9 sportradar-nba-competitor-mapping (away)
+    - type: "mapping"
+      name: "sportradar-nba-competitor-mapping"
+      description: "Transform the sportradar nba data"
+      condition: "$.get('event_exists') is True"
+      inputs:
+        competitor: "$.get('result-away-competitor')"
+      outputs:
+        away_own_record: "$.get('own_record', {})"
+        away_opponents_record: "$.get('opponents_record', {})"
+        away_players: "$.get('players', [])"
 
-    # 14 update-documents
-    # - type: "document"
-    #   name: "update-documents-standings"
-    #   description: "Update the documents."
-    #   condition: "$.get('event_exists') is True"
-    #   config:
-    #     action: "update"
-    #     embed-vector: false
-    #     force-update: true
-    #   documents:
-    #     comparison-analysis: |
-    #       {
-    #         "execution": datetime.utcnow(),
-    #         "content": $.get('research-comparison'),
-    #         "title": f"{$.get('title')} - Comparison Analysis",
-    #         "status": 'active'
-    #       }
-    #     players-to-watch: |
-    #       {
-    #         "execution": datetime.utcnow(),
-    #         "content": $.get('research-players-to-watch'),
-    #         "title": f"{$.get('title')} - Players to Watch",
-    #         "status": 'active'
-    #       }
-    #   metadata:
-    #     event_code: "$.get('event_code')"
-    
-    # 15 update-snippets
+    # 10 prompt-nba-competitor-embeddings (away)
+    - type: "prompt"
+      name: "prompt-nba-competitor-embeddings"
+      description: "Generate structured analysis snippets comparing two teams using their statistical data"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        away_own_record: "$.get('away_own_record', {})"
+        away_team_name: "$.get('team_away_name')"
+      outputs:
+        away-competitor-embeddings: "$"
+        away-competitor-embeddings-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(team_away_name) - {c.get('title', '')}",
+              'metadata': {
+                'content_type': 'competitor',
+                'event_code': '$.(event_code)',
+                'team_name': '$.(team_away_name)',
+                'team_id': '$.(team_away_id)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 11 prompt-nba-players-embeddings (away)
+    - type: "prompt"
+      name: "prompt-nba-players-embeddings"
+      description: "Generate structured analysis snippets for a single team using their players data"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      foreach:
+        name: "player"
+        expr: "$"
+        value: "$.get('away_players')[:5]"
+      inputs:
+        away_team_name: "$.get('team_away_name')"
+        away_player: "$.get('player')"
+        away_player_name: "$.get('player').get('full_name')"
+      outputs:
+        away-players-embeddings-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(away_player_name) ($.(team_away_name)) - {c.get('title', '')}",
+              'metadata': {
+                'content_type': 'player',
+                'event_code': '$.(event_code)',
+                'team_name': '$.(team_away_name)',
+                'team_id': '$.(team_away_id)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 12 fetch-league-injuries
+    - type: "connector"
+      name: "fetch-league-injuries"
+      description: "Get league injuries data from SportRadar"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "sportradar-nba"
+        command: "get-league/injuries.json"
+      inputs:
+        api_key: "$.get('sportradar_api_key')"
+      outputs:
+        result-league-injuries: "$"
+        home-injuries: "next((l.get('players', []) for l in $.get('teams', []) if l.get('id') == '$.(team_home_id)'))"
+        away-injuries: "next((l.get('players', []) for l in $.get('teams', []) if l.get('id') == '$.(team_away_id)'))"
+
+    # 13 prompt-nba-injuries-embeddings (home)
+    - type: "prompt"
+      name: "prompt-nba-injuries-embeddings"
+      description: "Generate structured analysis snippets for NBA injuries"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      foreach:
+        name: "player"
+        expr: "$"
+        value: "$.get('home-injuries')"
+      inputs:
+        home_team_name: "$.get('team_home_name')"
+        home_player: "$.get('player')"
+        home_player_name: "$.get('player').get('full_name')"
+      outputs:
+        home-injuries-embeddings-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(home_player_name) ($.(team_home_name)) - {c.get('title', '')}",
+              'metadata': { 
+                'content_type': 'injury',
+                'event_code': '$.(event_code)',
+                'team_name': '$.(team_home_name)',
+                'team_id': '$.(team_home_id)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 14 prompt-nba-injuries-embeddings (away)
+    - type: "prompt"
+      name: "prompt-nba-injuries-embeddings"
+      description: "Generate structured analysis snippets for NBA injuries"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      foreach:
+        name: "player"
+        expr: "$"
+        value: "$.get('away-injuries')"
+      inputs:
+        away_team_name: "$.get('team_away_name')"
+        away_player: "$.get('player')"
+        away_player_name: "$.get('player').get('full_name')"
+      outputs:
+        away-injuries-embeddings-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(away_player_name) ($.(team_away_name)) - {c.get('title', '')}",
+              'metadata': {
+                'content_type': 'injury',
+                'event_code': '$.(event_code)',
+                'team_name': '$.(team_away_name)',
+                'team_id': '$.(team_away_id)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 15 prompt-nba-players-to-watch (home)
+    - type: "prompt"
+      name: "prompt-nba-players-to-watch"
+      description: "Generate structured analysis snippets for NBA players to watch"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        home_team_name: "$.get('team_home_name')"
+        home-players-embeddings-bulk: "$.get('home-players-embeddings-bulk')"
+        home-injuries-embeddings-bulk: "$.get('home-injuries-embeddings-bulk')"
+      outputs:
+        home-players-to-watch-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(team_home_name) - {c.get('title', '')}",
+              'metadata': {
+                'content_type': 'player-to-watch',
+                'event_code': '$.(event_code)',
+                'team_name': '$.(team_home_name)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 16 prompt-nba-players-to-watch (away)
+    - type: "prompt"
+      name: "prompt-nba-players-to-watch"
+      description: "Generate structured analysis snippets for NBA players to watch"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        away_team_name: "$.get('team_away_name')"
+        away-players-embeddings-bulk: "$.get('away-players-embeddings-bulk')"
+        away-injuries-embeddings-bulk: "$.get('away-injuries-embeddings-bulk')"
+      outputs:
+        away-players-to-watch-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(team_away_name) - {c.get('title', '')}",
+              'metadata': {
+                'content_type': 'player-to-watch',
+                'event_code': '$.(event_code)',
+                'team_name': '$.(team_away_name)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 17 update-snippets
     - type: "document"
       name: "update-snippets"
       condition: "$.get('event_exists') is True"
@@ -280,7 +453,14 @@ workflow:
       inputs:
         parsed-items: |
           [
-            *$.get('home-competitor-embeddings-bulk', [])
+            *$.get('home-competitor-embeddings-bulk', []),
+            *$.get('away-competitor-embeddings-bulk', []),
+            *$.get('home-players-embeddings-bulk', []),
+            *$.get('away-players-embeddings-bulk', []),
+            *$.get('home-injuries-embeddings-bulk', []),
+            *$.get('away-injuries-embeddings-bulk', []),
+            *$.get('home-players-to-watch-bulk', []),
+            *$.get('away-players-to-watch-bulk', [])
           ]
 
     # 16 version-control-success-nba-game

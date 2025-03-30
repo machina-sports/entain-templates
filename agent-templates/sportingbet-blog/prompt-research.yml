@@ -42,13 +42,14 @@ prompts:
           type: "string"
           description: "Create a prompt for a blog image, following these instructions and the context below: The image should show a soccer referee in a dramatic moment on the field, with a determined expression as they hold up a red or yellow card. The referee should be wearing the traditional black uniform and be positioned in the foreground against a blurred stadium background filled with spectators. The lighting should highlight the authority and intensity of the moment, with the referee's stance conveying confidence and decisiveness. The style should be semi-realistic, capturing the tension and gravity of an important disciplinary decision during a match."
 
+  # prompt-nba-competitor-embeddings
   - type: "prompt"
-    title: "NBA Team Analysis"
+    title: "NBA Competitor Embeddings"
     name: "prompt-nba-competitor-embeddings"
-    description: "Generate structured analysis snippets comparing two teams using their statistical data"
+    description: "Generate structured analysis snippets for a single team using their statistical data"
     schema:
       title: "NbaCompetitorEmbeddings"
-      description: "Analysis structure for comparing team statistics and performance metrics"
+      description: "Analysis structure for team statistics and performance metrics"
       type: "object"
       properties:
         snippets:
@@ -60,35 +61,130 @@ prompts:
               title:
                 type: "string"
                 enum: [
-                  "Offensive Efficiency",
-                  "Defensive Performance",
-                  "Shooting Breakdown",
-                  "Bench Production",
-                  "Pace and Style",
-                  "Recent Form",
-                  "Home/Away Splits",
-                  "Points Distribution"
+                  "Scoring Profile",
+                  "Shooting Efficiency",
+                  "Paint Performance",
+                  "Defensive Metrics",
+                  "Bench Impact",
+                  "Ball Movement",
+                  "Fast Break Analysis",
+                  "Rebounding Trends"
                 ]
               content:
                 type: "string"
                 description: |
                   Statistical analysis using the following data points:
-                  - Offensive: PPG, FG%, 3P%, FT%, paint points
-                  - Defensive: opponent PPG, defensive rating, steals, blocks
-                  - Efficiency: net rating, true shooting %, assist/turnover ratio
-                  - Game Style: bench points, fast break points, rebounds
+                  - Offensive: PPG (points), FG%, 3P%, FT%, paint_points
+                  - Defensive: opp_ppg, def_rating, steals_pg, blocks_pg
+                  - Efficiency: net_rating, true_shooting, assist_to_turnover
+                  - Style: bench_points, fast break points, rebounds
                   
                   Requirements:
                   1. Use exact numbers from team_stats mapping
-                  2. Compare both teams' metrics directly
-                  3. Highlight significant statistical disparities
+                  2. Compare current stats to league averages when relevant
+                  3. Highlight standout metrics (both positive and negative)
                   4. Focus on betting-relevant insights
                   5. Avoid generic statements - use specific data points
                   6. Maximum 3 sentences per snippet
             required: ["title", "content"]
-          minItems: 6
-          maxItems: 8
+          minItems: 5
+          maxItems: 5
       required: ["snippets"]
+
+  # prompt-nba-players-embeddings
+  - type: "prompt"
+    title: "NBA Players Embeddings"
+    name: "prompt-nba-players-embeddings"
+    description: "Generate structured analysis snippets for individual player performance"
+    schema:
+      title: "NbaPlayersEmbeddings"
+      description: "Analysis structure for individual player statistics and performance"
+      type: "object"
+      properties:
+        snippets:
+          type: "array" 
+          description: "Analysis snippets based on player statistics"
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                enum: [
+                  "Scoring Profile",
+                  "Shooting Efficiency",
+                  "Playmaking Impact",
+                  "Defensive Presence"
+                ]
+              content:
+                type: "string"
+                description: |
+                  Generate detailed analysis using these statistical categories:
+
+                  1. Scoring Profile:
+                     - Points per game (points)
+                     - Shot distribution (2PT%, 3PT%, FT%)
+                     - True shooting percentage
+                     - Points in paint vs perimeter
+                     - Usage percentage
+
+                  2. Shooting Efficiency:
+                     - Field goal percentages (field_goals_pct)
+                     - Three-point shooting (three_points_made, three_points_pct)
+                     - Free throw accuracy (free_throws_pct)
+                     - Shot location breakdown (rim, midrange, three)
+                     - Effective field goal percentage
+
+                  3. Playmaking Impact:
+                     - Assists per game (assists)
+                     - Assist to turnover ratio
+                     - Minutes played
+                     - Fast break points
+                     - Second chance points
+
+                  4. Defensive Presence:
+                     - Steals per game (steals)
+                     - Blocks per game (blocks)
+                     - Rebounds (offensive/defensive)
+                     - Personal fouls
+                     - Plus/minus impact
+
+                  Requirements:
+                  1. Use exact statistics from the player data
+                  2. Compare to position averages when relevant
+                  3. Highlight standout metrics
+                  4. Focus on betting-relevant insights
+                  5. Maximum 3 sentences per snippet
+                  6. Include games played/started context
+            required: ["title", "content"]
+          minItems: 1
+          maxItems: 1
+      required: ["snippets"]
+
+  # prompt-nba-injuries
+  - type: "prompt"
+    title: "NBA Injuries Embeddings"
+    name: "prompt-nba-injuries-embeddings"
+    description: "Generate structured analysis snippets for NBA injuries"
+    schema:
+      title: "NbaInjuriesEmbeddings"
+      description: "Analysis structure for NBA injuries"
+      type: "object"
+      properties:
+        snippets:
+          type: "array"
+          description: "Analysis snippets based on player injuries"
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                description: "The category of injuries analysis (e.g., 'Injuries', 'Key Players', etc)."
+              content:
+                type: "string"
+                description: "Detailed comparative analysis of both teams' injuries situation, including recent form, and relevant performance metrics."
+            required: ["title", "content"]
+          minItems: 1
+          maxItems: 1
 
   # reporter-comparison
   - type: "prompt"
@@ -121,32 +217,63 @@ prompts:
 
   # reporter-players-to-watch
   - type: "prompt"
-    title: "Reporter Players to Watch"
-    name: "prompt-reporter-players-to-watch"
-    description: "This schema defines the structure to generate a detailed players to watch analysis between two teams."
+    title: "NBA Players to Watch"
+    name: "prompt-nba-players-to-watch"
+    description: "Generate detailed analysis for key players on a team, including injury status"
     schema:
-      title: "ReporterPlayersToWatch"
-      description: "This schema defines the structure to generate a detailed players to watch analysis between two teams."
+      title: "NbaPlayersToWatch"
+      description: "Analysis structure for identifying and analyzing key players' impact and availability"
       type: "object"
       properties:
         snippets:
           type: "array"
-          description: "An array of snippets analyzing the players to watch."
+          description: "Analysis snippets for team's key players"
           items:
             type: "object"
             properties:
               title:
                 type: "string"
-                description: "The category of players to watch analysis (e.g., 'Players to Watch', 'Key Players', etc)."
+                enum: [
+                  "Primary Scorer",
+                  "Floor General",
+                  "Defensive Anchor",
+                  "X-Factor",
+                  "Injury Impact"
+                ]
               content:
                 type: "string"
-                description: "Detailed comparative analysis of both teams' players to watch situation, including recent form, and relevant performance metrics."
-              confidence:
-                type: "number"
-                description: "The confidence score for the accuracy of the players to watch analysis (0.0 to 1.0)."
-            required: ["title", "content", "confidence"]
+                description: |
+                  Analyze player's impact and status using these key metrics:
+                  
+                  1. Availability Check:
+                     - Current injury status
+                     - Expected return timeline
+                     - Impact of absence
+                     - Replacement player analysis
+                  
+                  2. Statistical Focus (if available):
+                     - Scoring efficiency (points, FG%, TS%)
+                     - Playmaking (assists, assist/turnover)
+                     - Defensive impact (steals, blocks, rebounds)
+                     - Minutes/Usage (games started, playing time)
+                  
+                  3. Context Required:
+                     - Role in team's system
+                     - Impact on team's success
+                     - Key matchup implications
+                     - Betting angle relevance
+                  
+                  4. Format:
+                     - Start with injury status if applicable
+                     - Include key performance metrics if active
+                     - Connect to game context and betting implications
+                     - Maximum 3 sentences
+
+                  Note: If player is OUT, focus on their absence impact and replacement performance.
+            required: ["title", "content"]
           minItems: 2
-          maxItems: 2
+          maxItems: 3
+      required: ["snippets"]
 
   # reporter-standings
   - type: "prompt"

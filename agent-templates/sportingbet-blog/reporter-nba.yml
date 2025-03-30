@@ -1,0 +1,265 @@
+workflow:
+  name: "reporter-nba"
+  title: "Reporter NBA"
+  description: "Workflow to produce an NBA article."
+  context-variables:
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+  inputs:
+    event_code: "$.get('event_code') or None"
+  outputs:
+    events: "$.get('events')"
+    workflow-status: "$.get('event_exists') is not True and 'skipped' or 'executed'"
+  
+  tasks:
+    
+    # 0 load-event-by-code
+    - type: "document"
+      name: "load-event-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('event_code') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "'nba-game'"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 1 load-event-by-schedule
+    - type: "document"
+      name: "load-event-by-schedule"
+      description: "Search for schedule events (sportradar)."
+      condition: "$.get('event_exists') is not True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=172)}"
+        value.version_control.processing: "{'$ne': True}"
+        value.version_control.article_status: "{'$exists': False}"
+        value.version_control.research_odds_status: "'processed'"
+        value.version_control.research_stats_status: "'processed'"
+      inputs:
+        name: "'nba-game'"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 2 sportradar-nba-event-mapping
+    - type: "mapping"
+      name: "sportradar-nba-event-mapping"
+      description: "Transform the sportradar nba data"
+      condition: "$.get('event_exists') is True"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        article_count: "$.get('article_count')"
+        event_code: "$.get('event_code')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+        venue_title: "$.get('venue_title')"
+        widget-match-embed: "$.get('widget-match-embed')"
+
+    # 5 version-control-update (nba-game)
+    - type: "document"
+      name: "version-control-update-nba-game"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        nba-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'article_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    # Load event documents
+    - type: "document"
+      name: "load-event-documents"
+      description: "Load event documents"
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        threshold-docs: 5
+        threshold-similarity: 0.01
+        search-limit: 1000
+        search-vector: true
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'1000'"
+        search-query: "$.get('messages')"
+      outputs:
+        event_documents: "$.get('documents', [])"
+
+    # 8 load-market-odds
+    - type: "document"
+      name: "load-market-odds"
+      description: "Search for registered market odds."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "'market-odds'"
+      outputs:
+        result-market-odds: "$.get('documents', [])"
+        result-market-odds-snippets: |
+          [
+            {
+              **s,
+              'title': f"{d.get('value', {}).get('title', '')} - {s.get('title', '')}"
+            }
+            for d in $.get('documents', [])
+            for s in d.get('value', {}).get('content', {}).get('snippets', [])
+          ]
+
+    # 13 prompt-article-nba-br
+    - type: "prompt"
+      name: "prompt-article-nba-br"
+      description: "Generate a preview for the upcoming game"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        start_time: "$.get('event_selected').get('start_time')"
+        content-snippets: |
+          [
+            *$.get('event_documents', []),
+            *$.get('result-market-odds-snippets', [])
+          ]
+      outputs:
+        reporter-article-br: "$"
+
+    # 14 prompt-article-nba-en
+    - type: "prompt"
+      name: "prompt-article-nba-en"
+      description: "Generate a preview for the upcoming game"
+      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        start_time: "$.get('event_selected').get('start_time')"
+        content-snippets: |
+          [
+            *$.get('event_documents', []),
+            *$.get('result-market-odds-snippets', [])
+          ]
+      outputs:
+        reporter-article-en: "$"
+
+    # 13 update-article-br
+    - type: "document"
+      name: "update-article-br"
+      description: "Update the document."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-article: |
+          {
+            **$.get('reporter-article-br', {}),
+            'execution': datetime.utcnow(),
+            'event-details': {
+              'match': $.get('title'),
+              'when': $.get('event_selected').get('start_time'),
+              'venue': $.get('venue_title')
+            },
+            'status': 'active',
+            'widget-match-embed': $.get('widget-match-embed'),
+          }
+      metadata:
+        competition: "$.get('competition_id')"
+        document_type: "'content-article'"
+        event_code: "$.get('event_code')"
+        event_type: "$.get('event_type')"
+        language: "'br'"
+
+    # 14 update-article-en
+    - type: "document"
+      name: "update-article-en"
+      description: "Update the document."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-article: |
+          {
+            **$.get('reporter-article-en', {}),
+            'execution': datetime.utcnow(),
+            'event-details': {
+              'match': $.get('title'),
+              'when': $.get('event_selected').get('start_time'),
+              'venue': $.get('venue_title')
+            },
+            'status': 'active',
+            'widget-match-embed': $.get('widget-match-embed'),
+          }
+      metadata:
+        competition: "$.get('competition_id')"
+        document_type: "'content-article'"
+        event_type: "$.get('event_type')"
+        event_code: "$.get('event_code')"
+        language: "'en'"
+
+    # 16 version-control-success-nba-game
+    - type: "document"
+      name: "version-control-success-nba-game"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        nba-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': False,
+              'article_count': $.get('article_count', 0) + 1,
+              'article_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
