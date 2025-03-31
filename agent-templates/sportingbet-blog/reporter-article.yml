@@ -28,7 +28,7 @@ workflow:
       filters:
         metadata.event_code: "$.get('event_code')"
       inputs:
-        name: "{'$in': ['nba-game', 'soccer-game']}"
+        name: "{'$in': ['soccer-game']}"
       outputs:
         event_exists: "len($.get('documents', [])) > 0"
         event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
@@ -53,29 +53,11 @@ workflow:
         # value.version_control.research_news_status: "'processed'"
         # value.version_control.research_team_status: "'processed'"
       inputs:
-        name: "{'$in': ['nba-game', 'soccer-game']}"
+        name: "{'$in': ['soccer-game']}"
       outputs:
         event_exists: "len($.get('documents', [])) > 0"
         event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
         event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
-
-    # 2 sportradar-nba-event-mapping
-    - type: "mapping"
-      name: "sportradar-nba-event-mapping"
-      description: "Transform the sportradar nba data"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
-      inputs:
-        event_selected: "$.get('event_selected')"
-      outputs:
-        article_count: "$.get('article_count')"
-        event_code: "$.get('event_code')"
-        team_home_name: "$.get('team_home_name')"
-        team_away_name: "$.get('team_away_name')"
-        team_home_id: "$.get('team_home_id')"
-        team_away_id: "$.get('team_away_id')"
-        title: "$.get('title')"
-        venue_title: "$.get('venue_title')"
-        widget-match-embed: "$.get('widget-match-embed')"
 
     # 3 sportradar-soccer-mapping
     - type: "mapping"
@@ -117,78 +99,6 @@ workflow:
           }
       metadata:
         event_code: "$.get('event_code')"
-
-    # 5 version-control-update (nba-game)
-    - type: "document"
-      name: "version-control-update-nba-game"
-      description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        nba-game: |
-          {
-            **$.get('event_selected'),
-            'version_control': {
-              **$.get('event_selected').get('version_control', {}),
-              'processing': True,
-              'article_status': 'processing'
-            }
-          }
-      metadata:
-        event_code: "$.get('event_code')"
-
-    # 6 load-team-history
-    # - type: "document"
-    #   name: "load-team-history"
-    #   description: "Search for registered team history."
-    #   condition: "$.get('event_exists') is True"
-    #   config:
-    #     action: "search"
-    #     search-limit: 2
-    #     search-vector: false
-    #   filters:
-    #     metadata.event_code: "$.get('event_code')"
-    #   inputs:
-    #     name: "'team-history'"
-    #   outputs:
-    #     result-team-history: "$.get('documents', [])"
-    #     result-team-history-snippets: |
-    #       [
-    #         {
-    #           **s,
-    #           'title': f"{d.get('value', {}).get('title', '')} - {s.get('title', '')}"
-    #         }
-    #         for d in $.get('documents', [])
-    #         for s in d.get('value', {}).get('content', {}).get('snippets', [])
-    #       ]
-
-    # 7 load-team-news
-    # - type: "document"
-    #   name: "load-team-news"
-    #   description: "Search for registered news."
-    #   condition: "$.get('event_exists') is True"
-    #   config:
-    #     action: "search"
-    #     search-limit: 2
-    #     search-vector: false
-    #   filters:
-    #     metadata.event_code: "$.get('event_code')"
-    #   inputs:
-    #     name: "'team-news'"
-    #   outputs:
-    #     result-team-news: "$.get('documents', [])"
-    #     result-team-news-snippets: |
-    #       [
-    #         {
-    #           **s,
-    #           'title': f"{d.get('value', {}).get('title', '')} - {s.get('title', '')}"
-    #         }
-    #         for d in $.get('documents', [])
-    #         for s in d.get('value', {}).get('content', {}).get('snippets', [])
-    #       ]
 
     # 8 load-market-odds
     - type: "document"
@@ -336,52 +246,6 @@ workflow:
       outputs:
         reporter-article-en: "$"
 
-    # 13 prompt-article-nba-br
-    - type: "prompt"
-      name: "prompt-article-nba-br"
-      description: "Generate a preview for the upcoming game"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
-      connector:
-        name: "machina-ai"
-        command: "invoke_prompt"
-        model: "gpt-4o"
-      inputs:
-        start_time: "$.get('event_selected').get('start_time')"
-        content-snippets: |
-          [
-            *$.get('result-team-history-snippets', []),
-            *$.get('result-team-news-snippets', []),
-            *$.get('result-market-odds-snippets', []),
-            *$.get('result-standings-snippets', []),
-            *$.get('result-comparison-snippets', []),
-            *$.get('result-players-to-watch-snippets', [])
-          ]
-      outputs:
-        reporter-article-br: "$"
-
-    # 14 prompt-article-nba-en
-    - type: "prompt"
-      name: "prompt-article-nba-en"
-      description: "Generate a preview for the upcoming game"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
-      connector:
-        name: "machina-ai"
-        command: "invoke_prompt"
-        model: "gpt-4o"
-      inputs:
-        start_time: "$.get('event_selected').get('start_time')"
-        content-snippets: |
-          [
-            *$.get('result-team-history-snippets', []),
-            *$.get('result-team-news-snippets', []),
-            *$.get('result-market-odds-snippets', []),
-            *$.get('result-standings-snippets', []),
-            *$.get('result-comparison-snippets', []),
-            *$.get('result-players-to-watch-snippets', [])
-          ]
-      outputs:
-        reporter-article-en: "$"
-
     # 13 update-article-br
     - type: "document"
       name: "update-article-br"
@@ -464,26 +328,3 @@ workflow:
       metadata:
         event_code: "$.get('event_code')"
     
-    # 16 version-control-success-nba-game
-    - type: "document"
-      name: "version-control-success-nba-game"
-      description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        nba-game: |
-          {
-            **$.get('event_selected'),
-            'version_control': {
-              **$.get('event_selected').get('version_control', {}),
-              'processing': False,
-              'article_count': $.get('article_count', 0) + 1,
-              'article_status': 'processed',
-              'updated': datetime.utcnow()
-            }
-          }
-      metadata:
-        event_code: "$.get('event_code')"
