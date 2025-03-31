@@ -142,6 +142,12 @@ agent:
       outputs:
         reporter-article: "$.get('workflow-status', False)"
 
+    # Reporter NBA Article
+    - name: "reporter-nba"
+      description: "Reporter NBA Article"
+      outputs:
+        reporter-nba: "$.get('workflow-status', False)"
+
     # Reporter Image
     - name: "reporter-image"
       description: "Reporter Image"
