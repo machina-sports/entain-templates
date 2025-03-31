@@ -85,7 +85,7 @@ workflow:
       inputs:
         name: "'content-snippet'"
         search-limit: "'50'"
-        # search-query: "$.get('question')"
+        search-query: "$.get('question')"
       outputs:
         documents: "$.get('documents')"
 
@@ -99,7 +99,7 @@ workflow:
         command: "invoke_prompt"
         model: "gpt-4o"
       inputs:
-        messages: "$.get('messages', [])[-1].get('content')"
+        messages: "$.get('question')"
       outputs:
         is_faq_question: "$.get('is_faq_question')"
         is_match_question: "$.get('is_match_question')"
