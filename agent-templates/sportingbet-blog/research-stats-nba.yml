@@ -463,7 +463,7 @@ workflow:
             *$.get('away-players-to-watch-bulk', [])
           ]
 
-    # 16 version-control-success-nba-game
+    # 18 version-control-success-nba-game
     - type: "document"
       name: "version-control-success-nba-game"
       description: "Update the events document version control."

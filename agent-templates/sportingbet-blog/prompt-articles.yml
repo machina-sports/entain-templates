@@ -43,21 +43,89 @@ prompts:
           description: "Gere um título seguindo o seguinte template: 'Palpites [Time A] x [Time B]: odds do [Nome do Campeonato]'. Use os dados disponíveis para substituir os campos entre colchetes, garantindo que o título contenha as informações essenciais do confronto."
         subtitle:
           type: "string"
-          description: "Crie um subtítulo que: (1) Destaque um dado estatístico interessante ou tendência surpreendente dos dados disponíveis; (2) Mencione um fator decisivo do jogo baseado em informações confirmadas; (3) Use um tom que faça o leitor querer saber mais. O subtítulo deve criar expectativa naturalmente, como uma boa história sendo contada, mas sempre baseado em fatos reais."
+          description: |
+            Crie um subtítulo direto e factual usando APENAS os dados de mercado disponíveis.
+
+            USAR SOMENTE:
+            ✅ Handicap principal (exemplo: "Warriors -16.5")
+            ✅ Total de pontos principal (exemplo: "229.5 pontos")
+            ✅ Odds exatas dos mercados (exemplo: "+155", "-190")
+            
+            NÃO USAR - DADOS INDISPONÍVEIS:
+            ❌ Sequência de vitórias/derrotas
+            ❌ Histórico de confrontos
+            ❌ Desempenho recente das equipes
+            ❌ Estatísticas de jogadores
+            ❌ Informações de lesões
+            ❌ Campanhas na temporada
+            
+            PROIBIDO NO TEXTO:
+            ❌ Perguntas ("Será que...?")
+            ❌ "Busca", "Tenta", "Quer"
+            ❌ "Pode", "Deve", "Deve ser"
+            ❌ Especulações sobre forma/momento
+            
+            EXEMPLOS CORRETOS:
+            ✅ "Warriors Favoritos por 16.5 Pontos na Linha Principal"
+            ✅ "Mercado Total Define Linha em 229.5 Pontos"
+            
+            Use exclusivamente os dados dos mercados de apostas disponíveis.
         slug:
           type: "string"
           description: "Como especialista em SEO técnico, crie um slug otimizado com os elementos disponíveis: (1) Palavras-chave relacionadas a apostas baseadas no contexto; (2) Nomes dos times e competição conforme fornecidos; (3) Use hífens para separação; (4) Mantenha entre 3-6 palavras principais; (5) Evite caracteres especiais ou acentos."
         introduction:
           type: "string"
           description: |
-            Em até 80 palavras, foque em UM aspecto específico que impactará as decisões de apostas: uma sequência atual de vitórias/derrotas de um time, o desempenho excepcional recente de um jogador, uma lesão significativa ou uma tendência notável de apostas. NÃO inclua horário/data do jogo, frases genéricas sobre emoção ou conclusões vagas como "pode ser decisivo para apostadores". Mantenha-se em insights concretos e específicos que ajudem diretamente nas decisões de apostas.
+            Em até 80 palavras, foque em UM dos seguintes aspectos que impacta diretamente as apostas:
+
+            ESCOLHA APENAS UM:
+            ✅ Desempenho estatístico do time (ex: "média de 114.3 pontos, 46.5% nos arremessos")
+            ✅ Produção individual de jogador (ex: "24.1 pontos por jogo, 39.2% de três")
+            ✅ Lesão/ausência significativa confirmada
+            ✅ Eficiência ofensiva ou defensiva (ex: "48.19 pontos no garrafão")
+
+            REGRAS:
+            - Escolha o aspecto mais impactante para apostas
+            - Use números e estatísticas específicas
+            - Mantenha foco em UM único ponto
+            
+            NÃO INCLUIR:
+            ❌ Sequências de vitórias/derrotas
+            ❌ Horário/data do jogo
+            ❌ Frases genéricas sobre emoção
+            ❌ "Pode ser decisivo para apostadores"
+            ❌ Múltiplos aspectos ao mesmo tempo
+            ❌ Conclusões vagas ou especulativas
         section_1_title:
           type: "string"
-          description: "As odds para [Time A] x [Time B]"
+          description: "Handicap e Total de Pontos para [Time A] x [Time B]"
         section_1_content:
           type: "string"
           description: |
-            Em cerca de 150 palavras, discuta as odds pré-jogo (antes da partida começar) como se estivesse conversando com um amigo em um bar. **Se a partida for de basquete, foque exclusivamente no point spread pré-jogo (não na moneyline) e no total inicial, além de mencionar quaisquer tendências recentes contra o spread que sejam relevantes.** Para outros esportes, siga as diretrizes gerais. Importante: mantenha o foco nas odds iniciais, pois as odds ao vivo serão mostradas em um widget separado.
+            Em aproximadamente 150 palavras, analise as odds do handicap (spread) e total de pontos (over/under) pré-jogo. Elementos necessários:
+
+            1. Análise do Handicap:
+               - Handicap principal e odds para ambos os lados
+               - Handicaps alternativos disponíveis e suas odds
+               - Opções de handicap para primeiro tempo e primeiro quarto
+            
+            2. Análise do Total de Pontos:
+               - Linha principal de total de pontos e odds
+               - Totais alternativos disponíveis
+               - Opções de total para primeiro tempo e primeiro quarto
+            
+            NÃO INCLUIR:
+            ❌ Histórico de resultados contra o handicap
+            ❌ Histórico de resultados over/under
+            ❌ Afirmações genéricas sem dados de mercado
+            ❌ Histórico de confrontos diretos
+            
+            FORMATO OBRIGATÓRIO:
+            ✅ "Warriors -16.5 (+155) e Spurs +16.5 (-190)"
+            ✅ "Total definido em 229.5 (Over -120, Under +100)"
+            ✅ "Handicaps alternativos variam de Warriors -8.5 (-190) até -16.5 (+155)"
+            
+            Concentre-se em apresentar os mercados disponíveis de forma clara, mostrando a variedade de opções e suas respectivas odds.
         section_2_title:
           type: "string"
           description: "[Team A]"
@@ -229,21 +297,78 @@ prompts:
           description: "Gere um título seguindo o seguinte template: 'Palpites [Time A] x [Time B]: odds do [Nome do Campeonato]'. Use os dados disponíveis para substituir os campos entre colchetes, garantindo que o título contenha as informações essenciais do confronto."
         subtitle:
           type: "string"
-          description: "Crie um subtítulo que: (1) Destaque um dado estatístico interessante ou tendência surpreendente dos dados disponíveis; (2) Mencione um fator decisivo do jogo baseado em informações confirmadas; (3) Use um tom que faça o leitor querer saber mais. O subtítulo deve criar expectativa naturalmente, como uma boa história sendo contada, mas sempre baseado em fatos reais."
+          description: |
+            Crie um subtítulo direto e factual que:
+            1. Apresente a linha principal de apostas (handicap ou total)
+            2. Use informações concretas do mercado
+            3. Evite perguntas ou afirmações especulativas
+            
+            EVITAR:
+            ❌ Perguntas ("Será que..?", "Conseguirão...?")
+            ❌ Frases especulativas ("Busca...", "Tenta...")
+            ❌ Histórico de resultados das equipes
+            
+            BONS EXEMPLOS:
+            ✅ "Warriors Favoritos por 16.5 Pontos Contra os Spurs"
+            ✅ "Linha de Total de Pontos Estabelecida em 229.5"
+            
+            Mantenha factual, direto e baseado apenas nos dados de mercado disponíveis.
         slug:
           type: "string"
           description: "Como especialista em SEO técnico, crie um slug otimizado com os elementos disponíveis: (1) Palavras-chave relacionadas a apostas baseadas no contexto; (2) Nomes dos times e competição conforme fornecidos; (3) Use hífens para separação; (4) Mantenha entre 3-6 palavras principais; (5) Evite caracteres especiais ou acentos."
         introduction:
           type: "string"
           description: |
-            Em até 80 palavras, foque em UM aspecto específico que impactará as decisões de apostas: uma sequência atual de vitórias/derrotas de um time, o desempenho excepcional recente de um jogador, uma lesão significativa ou uma tendência notável de apostas. NÃO inclua horário/data do jogo, frases genéricas sobre emoção ou conclusões vagas como "pode ser decisivo para apostadores". Mantenha-se em insights concretos e específicos que ajudem diretamente nas decisões de apostas.
+            Em até 80 palavras, foque em UM dos seguintes aspectos que impacta diretamente as apostas:
+
+            ESCOLHA APENAS UM:
+            ✅ Desempenho estatístico do time (ex: "média de 114.3 pontos, 46.5% nos arremessos")
+            ✅ Produção individual de jogador (ex: "24.1 pontos por jogo, 39.2% de três")
+            ✅ Lesão/ausência significativa confirmada
+            ✅ Eficiência ofensiva ou defensiva (ex: "48.19 pontos no garrafão")
+
+            REGRAS:
+            - Escolha o aspecto mais impactante para apostas
+            - Use números e estatísticas específicas
+            - Mantenha foco em UM único ponto
+            
+            NÃO INCLUIR:
+            ❌ Sequências de vitórias/derrotas
+            ❌ Horário/data do jogo
+            ❌ Frases genéricas sobre emoção
+            ❌ "Pode ser decisivo para apostadores"
+            ❌ Múltiplos aspectos ao mesmo tempo
+            ❌ Conclusões vagas ou especulativas
         section_1_title:
           type: "string"
-          description: "As odds para [Time A] x [Time B]"
+          description: "Handicap e Total de Pontos para [Time A] x [Time B]"
         section_1_content:
           type: "string"
           description: |
-            Em cerca de 150 palavras, discuta as odds pré-jogo (antes da partida começar) como se estivesse conversando com um amigo em um bar. **Se a partida for de basquete, foque exclusivamente no point spread pré-jogo (não na moneyline) e no total inicial, além de mencionar quaisquer tendências recentes contra o spread que sejam relevantes.** Para outros esportes, siga as diretrizes gerais. Importante: mantenha o foco nas odds iniciais, pois as odds ao vivo serão mostradas em um widget separado.
+            Em aproximadamente 150 palavras, analise as odds do handicap (spread) e total de pontos (over/under) pré-jogo. Elementos necessários:
+
+            1. Análise do Handicap:
+               - Handicap principal e odds para ambos os lados
+               - Handicaps alternativos disponíveis e suas odds
+               - Opções de handicap para primeiro tempo e primeiro quarto
+            
+            2. Análise do Total de Pontos:
+               - Linha principal de total de pontos e odds
+               - Totais alternativos disponíveis
+               - Opções de total para primeiro tempo e primeiro quarto
+            
+            NÃO INCLUIR:
+            ❌ Histórico de resultados contra o handicap
+            ❌ Histórico de resultados over/under
+            ❌ Afirmações genéricas sem dados de mercado
+            ❌ Histórico de confrontos diretos
+            
+            FORMATO OBRIGATÓRIO:
+            ✅ "Warriors -16.5 (+155) e Spurs +16.5 (-190)"
+            ✅ "Total definido em 229.5 (Over -120, Under +100)"
+            ✅ "Handicaps alternativos variam de Warriors -8.5 (-190) até -16.5 (+155)"
+            
+            Concentre-se em apresentar os mercados disponíveis de forma clara, mostrando a variedade de opções e suas respectivas odds.
         section_2_title:
           type: "string"
           description: "[Team A]"
@@ -322,21 +447,78 @@ prompts:
           description: "Generate a title following this template: 'Betting Tips for [Team A] vs [Team B]: odds from [Competition Name]'. Use the available data to replace the placeholders appropriately, ensuring the title conveys the essential details of the match."
         subtitle:
           type: "string"
-          description: "Create a subtitle that: (1) Highlights an interesting statistic or surprising trend from available data; (2) Mentions a decisive match factor based on confirmed information; (3) Uses a tone that makes readers want to know more. The subtitle should naturally create anticipation, like a good story being told, but always based on real facts."
+          description: |
+            Create a direct, factual subtitle that:
+            1. Presents the main betting line (spread or total)
+            2. Uses concrete market information
+            3. Avoids questions or speculative statements
+            
+            AVOID:
+            ❌ Questions ("Will they...?", "Can they...?")
+            ❌ Speculative phrases ("Looks to...", "Aims to...")
+            ❌ Team result history
+            
+            GOOD EXAMPLES:
+            ✅ "Warriors Set as 16.5-Point Favorites Against Spurs"
+            ✅ "Total Points Line Established at 229.5"
+            
+            Keep it factual, direct and based only on available market data.
         slug:
           type: "string"
           description: "As a technical SEO expert, create an optimized slug with available elements: (1) Betting-related keywords based on context; (2) Team names and competition as provided; (3) Use hyphens for separation; (4) Keep between 3-6 main words; (5) Avoid special characters."
         introduction:
           type: "string"
           description: |
-            In up to 100 words, focus on ONE specific key aspect that will impact betting decisions: a team's current win/loss streak, a player's exceptional recent performance, a significant injury, or a notable betting trend. Do NOT include game time/date or generic phrases about game excitement - stick to concrete, actionable insights for bettors.
+            In up to 80 words, focus on ONE of the following aspects that directly impacts betting:
+
+            CHOOSE ONLY ONE:
+            ✅ Team statistical performance (e.g., "averaging 114.3 points, 46.5% field goal percentage")
+            ✅ Individual player production (e.g., "24.1 points per game, 39.2% from three")
+            ✅ Confirmed significant injury/absence
+            ✅ Offensive or defensive efficiency (e.g., "48.19 points in the paint")
+
+            RULES:
+            - Choose the most impactful aspect for betting
+            - Use specific numbers and statistics
+            - Keep focus on ONE single point
+            
+            DO NOT INCLUDE:
+            ❌ Win/loss streaks
+            ❌ Game time/date
+            ❌ Generic emotional phrases
+            ❌ "Could be decisive for bettors"
+            ❌ Multiple aspects at once
+            ❌ Vague or speculative conclusions
         section_1_title:
           type: "string"
-          description: "Odds for [Team A] vs [Team B]"
+          description: "Point Spread and Total for [Team A] vs [Team B]"
         section_1_content:
           type: "string"
           description: |
-            In around 150 words, discuss the pre-game odds (before the match starts) as if you're chatting with a friend at a pub. **If the match is basketball, focus exclusively on the pre-game point spread (not the moneyline) and the initial total, as well as any recent against-the-spread trends that might be helpful.** For other sports, follow the general guidelines. Important: keep the focus on initial odds, as live odds will be shown in a separate widget.
+            In around 150 words, analyze the pre-game point spread and total (over/under) odds. Required elements:
+
+            1. Point Spread Analysis:
+               - Current main spread and price for both sides
+               - Available alternate spreads and their prices
+               - First half and first quarter spread options
+            
+            2. Total (Over/Under) Analysis:
+               - Current main total line and prices
+               - Available alternate totals
+               - First half and first quarter total options
+            
+            DO NOT INCLUDE:
+            ❌ ATS records or trends (not available)
+            ❌ O/U historical records (not available)
+            ❌ Generic statements without market data
+            ❌ Head-to-head history
+            
+            REQUIRED FORMAT:
+            ✅ "Warriors -16.5 (+155) with Spurs +16.5 (-190)"
+            ✅ "Total set at 229.5 (Over -120, Under +100)"
+            ✅ "Alternate spreads range from Warriors -8.5 (-190) to -16.5 (+155)"
+            
+            Focus on presenting the available markets clearly, showing the range of options and their corresponding prices.
         section_2_title:
           type: "string"
           description: "[Team A]"

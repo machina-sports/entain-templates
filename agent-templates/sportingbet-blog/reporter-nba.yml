@@ -97,6 +97,28 @@ workflow:
       metadata:
         event_code: "$.get('event_code')"
 
+    # # Load event documents
+    # - type: "document"
+    #   name: "load-event-documents"
+    #   description: "Load event documents"
+    #   condition: "$.get('event_exists') is True"
+    #   config:
+    #     action: "search"
+    #     threshold-docs: 100
+    #     threshold-similarity: 0.01
+    #     search-limit: 1000
+    #     search-vector: true
+    #   connector:
+    #     name: "machina-ai"
+    #     command: "invoke_embedding"
+    #     model: "text-embedding-3-small"
+    #   inputs:
+    #     name: "'content-snippet'"
+    #     search-limit: "'1000'"
+    #     search-query: "$.get('messages')"
+    #   outputs:
+    #     event_documents: "$.get('documents', [])"
+
     # Load event documents
     - type: "document"
       name: "load-event-documents"
@@ -104,51 +126,20 @@ workflow:
       condition: "$.get('event_exists') is True"
       config:
         action: "search"
-        threshold-docs: 5
-        threshold-similarity: 0.01
-        search-limit: 1000
-        search-vector: true
-      connector:
-        name: "machina-ai"
-        command: "invoke_embedding"
-        model: "text-embedding-3-small"
-      inputs:
-        name: "'content-snippet'"
-        search-limit: "'1000'"
-        search-query: "$.get('messages')"
-      outputs:
-        event_documents: "$.get('documents', [])"
-
-    # 8 load-market-odds
-    - type: "document"
-      name: "load-market-odds"
-      description: "Search for registered market odds."
-      condition: "$.get('event_exists') is True"
-      config:
-        action: "search"
-        search-limit: 1
         search-vector: false
       filters:
         metadata.event_code: "$.get('event_code')"
       inputs:
-        name: "'market-odds'"
+        name: "'content-snippet'"
+        search-limit: "'1000'"
       outputs:
-        result-market-odds: "$.get('documents', [])"
-        result-market-odds-snippets: |
-          [
-            {
-              **s,
-              'title': f"{d.get('value', {}).get('title', '')} - {s.get('title', '')}"
-            }
-            for d in $.get('documents', [])
-            for s in d.get('value', {}).get('content', {}).get('snippets', [])
-          ]
+        event_documents: "$.get('documents', [])"
 
     # 13 prompt-article-nba-br
     - type: "prompt"
       name: "prompt-article-nba-br"
       description: "Generate a preview for the upcoming game"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True"
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
@@ -167,7 +158,7 @@ workflow:
     - type: "prompt"
       name: "prompt-article-nba-en"
       description: "Generate a preview for the upcoming game"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True"
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
@@ -176,8 +167,7 @@ workflow:
         start_time: "$.get('event_selected').get('start_time')"
         content-snippets: |
           [
-            *$.get('event_documents', []),
-            *$.get('result-market-odds-snippets', [])
+            *$.get('event_documents', [])
           ]
       outputs:
         reporter-article-en: "$"

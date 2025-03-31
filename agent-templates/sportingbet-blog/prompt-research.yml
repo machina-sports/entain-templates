@@ -369,6 +369,75 @@ prompts:
           minItems: 3
           maxItems: 3
 
+  # research-nba-match-odds
+  - type: "prompt"
+    title: "Research NBA Match Odds"
+    name: "research-nba-match-odds"
+    description: "Generate structured analysis of available betting markets for an upcoming NBA game"
+    instruction: |
+      You are analyzing available betting markets for an upcoming NBA game.
+      
+      Required elements:
+      1. Point spreads (main and alternates)
+      2. Total points (main and alternates)
+      3. Moneyline odds
+      4. Quarter/Half markets if available
+      
+      Present all available markets and prices clearly and directly.
+      Avoid generic betting commentary.
+    schema:
+      title: "ResearchMatchOdds"
+      description: "Structure for listing all NBA betting markets"
+      type: "object"
+      properties:
+        snippets:
+          type: "array"
+          description: "Market listings for all available betting options"
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                enum: [
+                  "Main Markets Overview",
+                  "Main Point Spread",
+                  "Alternate Spreads",
+                  "Main Total Points",
+                  "Alternate Totals",
+                  "Moneyline Odds",
+                  "First Half Spreads",
+                  "First Half Totals",
+                  "First Quarter Spreads",
+                  "First Quarter Totals"
+                ]
+              content:
+                type: "string"
+                description: |
+                  Market Presentation Format:
+                  
+                  For Spreads:
+                  - Line and price for both sides
+                  - List all available alternates
+                  
+                  For Totals:
+                  - Line and price for over/under
+                  - List all available alternates
+                  
+                  For Moneyline:
+                  - Price for each team
+                  
+                  For Quarter/Half Markets:
+                  - Spreads and totals with prices
+                  
+                  Requirements:
+                  - List exact numbers and prices
+                  - Present in clear, organized manner
+                  - No commentary or analysis
+                  - Just market information
+            required: ["title", "content"]
+          minItems: 6
+          maxItems: 10
+
   # research-team-history
   - type: "prompt"
     title: "Research Team History"

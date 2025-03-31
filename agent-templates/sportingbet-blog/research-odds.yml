@@ -281,6 +281,7 @@ workflow:
       inputs:
         fixtureIds: "$.get('selected-fixture-id')" 
       outputs:
+        have_odds: "len($.get('items', [])[0].get('markets', [])) > 0"
         markets: "$.get('items', [])[0].get('markets', [])"
         bulk-markets: |
           [
@@ -295,7 +296,35 @@ workflow:
     - type: "prompt"
       name: "research-match-odds"
       description: "Research match odds."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True and $.get('event_type') == 'soccer-game'"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        title: "$.get('title')"
+        markets: "$.get('bulk-markets')"
+      outputs:
+        research-match-odds: "$"
+        research-match-odds-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"$.(title) - {c.get('title', '')}",
+              'metadata': {
+                'event_code': '$.(event_code)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 14 research-nba-match-odds
+    - type: "prompt"
+      name: "research-nba-match-odds"
+      description: "Research match odds."
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True and $.get('event_type') == 'nba-game'"
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
@@ -323,7 +352,7 @@ workflow:
     - type: "document"
       name: "update-documents-odds"
       description: "Update the documents."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True"
       config:
         action: "update"
         embed-vector: false
@@ -343,7 +372,7 @@ workflow:
     # 16 update-snippets
     - type: "document"
       name: "update-snippets"
-      condition: "$.get('event_exists') is True"
+      condition: "$.get('event_exists') is True and $.get('have_odds') is True"
       description: "Update the snippets."
       config:
         action: "bulk-save"
