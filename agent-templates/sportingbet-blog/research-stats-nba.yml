@@ -170,7 +170,7 @@ workflow:
       foreach:
         name: "player"
         expr: "$"
-        value: "$.get('home_players')[:5]"
+        value: "$.get('home_players')"
       inputs:
         home_team_name: "$.get('team_home_name')"
         home_player: "$.get('player')"
@@ -266,7 +266,7 @@ workflow:
       foreach:
         name: "player"
         expr: "$"
-        value: "$.get('away_players')[:5]"
+        value: "$.get('away_players')"
       inputs:
         away_team_name: "$.get('team_away_name')"
         away_player: "$.get('player')"
