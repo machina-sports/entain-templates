@@ -3,6 +3,8 @@ workflow:
   title: "Soccer - Sync Seasons"
   description: "Workflow to synchronize seasons from SportRadar API to Machina."
   context-variables:
+    debugger:
+      enabled: true
     sportradar-soccer:
       api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
   inputs:
@@ -57,7 +59,7 @@ workflow:
     - type: "connector"
       name: "task-load-seasons"
       description: "Get Seasons from SportRadar"
-      condition: "$.get('should_update') == True and $.get('competition') is not None"
+      condition: "$.get('competition') is not None"
       connector:
         name: "sportradar-soccer"
         command: "get-competitions/{competition_id}/seasons.json"
@@ -65,7 +67,7 @@ workflow:
           competition_id: "$.get('competition_id')"
       inputs:
         api_key: "$.get('api_key')"
-        competition: "$.get('competition').get('value')"
+        competition_value: "$.get('competition').get('value')"
       outputs:
         seasons: "$.get('seasons')"
         seasons_parsed: |
@@ -82,7 +84,7 @@ workflow:
     - type: "document"
       name: "task-update-seasons"
       description: "Update the seasons document."
-      condition: "$.get('should_update') == True and $.get('competition') is not None"
+      condition: "$.get('competition') is not None"
       config:
         action: "update"
         embed-vector: false
@@ -108,7 +110,7 @@ workflow:
     - type: "document"
       name: "task-bulk-save-seasons"
       description: "Bulk save the seasons."
-      condition: "$.get('should_update') == True and $.get('competition') is not None"
+      condition: "$.get('competition') is not None"
       config:
         action: "bulk-save"
         embed-vector: false

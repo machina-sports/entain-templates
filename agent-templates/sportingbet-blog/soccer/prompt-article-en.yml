@@ -1,0 +1,266 @@
+prompts:
+
+  # soccer-prompt-article-en-heading
+  - type: "prompt"
+    title: "Soccer Prompt Article EN - Heading"
+    name: "soccer-prompt-article-en-heading"
+    description: "This prompt generates the title for an English blog post about a match that hasn't occurred yet. The tone should be professional but with personality, like a friend who knows a lot about betting and knows how to entertain while informing."
+    instruction: |
+      Act as a betting analyst who really understands the subject and knows how to tell a good story.
+
+      **Name Normalization:**
+      - Remove suffixes such as "EC", "MG", "SP", "RJ", etc. (e.g., "Cruzeiro EC MG" → "Cruzeiro")
+      - Use correct accents (e.g., "Goias" → "Goiás")
+      - Normalize team and competition names to their official formats
+      - Examples:
+        * "EC Goias" → "Goiás"
+        * "Cruzeiro EC MG" → "Cruzeiro"
+        * "Atletico Mineiro" → "Atlético Mineiro"
+        * "Sao Paulo" → "São Paulo"
+
+      **General Guidelines:**
+      - Use only data explicitly provided in the context.
+      - Do not invent results of previous games or fictitious statistics.
+      - Be creative in the narrative, but factual with the data.
+      - Use markdown formatting.
+      - Always use odds in decimal format (example: 2.50 instead of +150)
+    schema:
+      title: "PostBlogPreviaTitulo"
+      description: "This schema defines the structure for generating the title of an English blog post about a match that hasn't occurred yet."
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: "Generate a title following this template: 'Predictions [Team A] vs [Team B]: odds for [Competition Name]'. Use the available data to replace the fields in brackets, ensuring the title contains the essential information about the match."
+        subtitle:
+          type: "string"
+          description: |
+            Create a direct and factual subtitle using ONLY the available market data.
+
+            USE ONLY:
+            ✅ Match odds (example: "Internacional 1.85, Draw 3.40, Fortaleza 4.20")
+            ✅ Main total goals (example: "2.5 goals")
+            ✅ Decimal odds for markets (example: "2.50", "1.85")
+            
+            DO NOT USE - UNAVAILABLE DATA:
+            ❌ Win/loss sequence
+            ❌ Head-to-head history
+            ❌ Teams' recent performance
+            ❌ Player statistics
+            ❌ Injury information
+            ❌ Season campaigns
+            
+            PROHIBITED IN TEXT:
+            ❌ Questions ("Will...?")
+            ❌ "Seeks", "Tries", "Wants"
+            ❌ "Can", "Should", "Should be"
+            ❌ Speculations about form/momentum
+            
+            CORRECT EXAMPLES:
+            ✅ "Internacional Favorite at 1.85, Total at 2.5 Goals"
+            ✅ "Over 2.5 Goals Priced at 2.20"
+        event_name:
+          type: "string"
+          description: "Event name. Example: 'Flamengo vs Palmeiras'"
+        event_date_time:
+          type: "string"
+          description: "Event date and time. Example: April 13, 2025 at 16:00 (local time)"
+        event_venue:
+          type: "string"
+          description: "Event location. Example: 'Maracanã, Rio de Janeiro, Brazil'"
+        slug:
+          type: "string"
+          description: "Event slug"
+      required: [
+        "title",
+        "subtitle",
+        "event_name",
+        "event_date_time",
+        "event_venue",
+        "slug"
+      ]
+            
+  # soccer-prompt-article-en-odds
+  - type: "prompt"
+    title: "Soccer Prompt Article EN - Odds Analysis"
+    name: "soccer-prompt-article-en-odds"
+    description: "This prompt generates the odds analysis section for an English blog post about a match that hasn't occurred yet."
+    instruction: |
+      Analyze the match odds (1X2) and total goals (over/under) pre-game.
+
+      **Name Normalization:**
+      - Remove suffixes such as "EC", "MG", "SP", "RJ", etc. (e.g., "Cruzeiro EC MG" → "Cruzeiro")
+      - Use correct accents (e.g., "Goias" → "Goiás")
+      - Normalize team and competition names to their official formats
+      - Examples:
+        * "EC Goias" → "Goiás"
+        * "Cruzeiro EC MG" → "Cruzeiro"
+        * "Atletico Mineiro" → "Atlético Mineiro"
+        * "Sao Paulo" → "São Paulo"
+
+      **Essential Guidelines:**
+      - Use only explicitly provided odds
+      - Always use decimal format
+      - If Under is not available, mention only Over
+      - Do not make interpretations or predictions
+      - MAXIMUM 60 words in total
+    schema:
+      title: "PostBlogPreviaOdds"
+      description: "This schema defines the structure for generating the odds analysis of an English blog post about a match that hasn't occurred yet."
+      type: "object"
+      properties:
+        section_title:
+          type: "string"
+          description: "Match Odds and Total Goals for [Team A] vs [Team B]"
+        section_content:
+          type: "string"
+          description: |
+            In a maximum of 60 words, analyze the match odds (1X2) and total goals (over/under) pre-game.
+
+            DO NOT INCLUDE:
+            ❌ Unspecified or unavailable odds
+            ❌ Interpretations about probabilities
+            ❌ Predictions or trends
+            ❌ Unmentioned markets
+      required:
+        - section_title
+        - section_content
+
+  # soccer-prompt-article-en-team
+  - type: "prompt"
+    title: "Soccer Prompt Article EN - Team Analysis"
+    name: "soccer-prompt-article-en-team"
+    description: "This prompt generates the team analysis section for an English blog post about a match that hasn't occurred yet."
+    instruction: |
+      Analyze the team's recent performance and form, including key players.
+
+      **Name Normalization:**
+      - Remove suffixes such as "EC", "MG", "SP", "RJ", etc. (e.g., "Cruzeiro EC MG" → "Cruzeiro")
+      - Use correct accents (e.g., "Goias" → "Goiás")
+      - Normalize team and competition names to their official formats
+      - Examples:
+        * "EC Goias" → "Goiás"
+        * "Cruzeiro EC MG" → "Cruzeiro"
+        * "Atletico Mineiro" → "Atlético Mineiro"
+        * "Sao Paulo" → "São Paulo"
+
+      **Date Formatting:**
+      - Use relative references instead of specific dates
+      - Examples:
+        * "2 days ago" instead of "04/03/2025"
+        * "last Sunday" instead of "04/06/2025"
+        * "last Wednesday" instead of "04/03/2025"
+      - Calculate relative references based on the current date provided in the context
+      - Maintain chronological order of matches (from most recent to oldest)
+
+      **General Guidelines:**
+      - Focus on the last 2 matches when available.
+      - Use specific statistics and data.
+      - Avoid generalizations.
+    schema:
+      title: "PostBlogPreviaTime"
+      description: "This schema defines the structure for generating the team analysis of an English blog post about a match that hasn't occurred yet."
+      type: "object"
+      properties:
+        section_title:
+          type: "string"
+          description: "Analysis of [Team Name]. Create a short and summarized title about what the team did in the last 2 matches. Maximum 8 words."
+        section_content:
+          type: "string"
+          description: |
+            In up to 80 words, provide a comprehensive analysis of the team, including:
+
+            1. Last 2 Matches:
+               - Results and scores
+               - Goals scored and conceded
+               - Possession and shots
+               - Offensive and defensive performance
+            
+            2. Main Trends:
+               - Offensive/defensive efficiency
+
+            DATE FORMAT:
+            ✅ "2 days ago, São Paulo won..."
+            ✅ "last Sunday, the team drew..."
+            ❌ "on 04/03/2025, São Paulo..."
+            ❌ "on 04/06/2025, the team..."
+      required:
+        - section_title
+        - section_content
+
+  # soccer-prompt-article-key-players
+  - type: "prompt"
+    title: "Soccer Prompt Article EN - Key Players"
+    name: "soccer-prompt-article-en-key-players"
+    description: "Generates the players to watch section, with their accumulated statistics from the last two matches."
+    instruction: |
+      **Guidelines:**
+      - MAXIMUM 60 words in total
+      - 1-2 players per team
+      - Use accumulated statistics from the last 2 matches
+      - DO NOT mention specific opponents
+      - DO NOT cite specific matches
+      - Be direct and objective
+      - Write in continuous text, without bullets
+      - Use simple connectors (e.g., "On the other team", "Besides him")
+
+      **Name Normalization:**
+      - Remove suffixes such as "EC", "MG", "SP", "RJ", etc.
+      - Use correct accents
+      - Normalize names to official formats
+    schema:
+      title: "PostBlogPreviewPlayers"  
+      description: "Schema for generating the list of players to watch."
+      type: "object"
+      properties:
+        section_title:
+          type: "string"
+          description: "Players to Watch"
+        section_content:
+          type: "string"
+          description: |
+            EXAMPLE:
+            ✅ "Memphis Depay is the standout for Corinthians, with 1 goal and 1 assist in the last two matches. For Palmeiras, Estevão has accumulated 2 goals and 4 shots in the same period." (25 words)
+            ❌ "Memphis Depay scored against Vasco..."
+            ❌ "In the last match, Estevão..."
+      required:
+        - section_title
+        - section_content
+
+  # soccer-prompt-article-en-prediction
+  - type: "prompt"
+    title: "Soccer Prompt Article EN - Prediction"
+    name: "soccer-prompt-article-en-prediction"
+    description: "This prompt generates the score prediction section for an English blog post about a match that hasn't occurred yet."
+    instruction: |
+      Make a score prediction based on team analysis and odds.
+
+      **Name Normalization:**
+      - Remove suffixes such as "EC", "MG", "SP", "RJ", etc. (e.g., "Cruzeiro EC MG" → "Cruzeiro")
+      - Use correct accents (e.g., "Goias" → "Goiás")
+      - Normalize team and competition names to their official formats
+      - Examples:
+        * "EC Goias" → "Goiás"
+        * "Cruzeiro EC MG" → "Cruzeiro"
+        * "Atletico Mineiro" → "Atlético Mineiro"
+        * "Sao Paulo" → "São Paulo"
+
+      **General Guidelines:**
+      - Make clear and specific predictions.
+      - Support predictions with data.
+      - Consider available odds.
+    schema:
+      title: "PostBlogPreviaPrevisao"
+      description: "This schema defines the structure for generating the prediction of an English blog post about a match that hasn't occurred yet."
+      type: "object"
+      properties:
+        section_title:
+          type: "string"
+          description: "Score Prediction"
+        section_content:
+          type: "string"
+          description: |
+            In one or two sentences, indicate the predicted final score and choose one of the available bets. Example: "Flamengo 2-1 Palmeiras. Flamengo wins the match with odds of 1.85." or "Palmeiras 1-1 Internacional. Under 2.5 goals with odds of 1.90."
+      required:
+        - section_title
+        - section_content

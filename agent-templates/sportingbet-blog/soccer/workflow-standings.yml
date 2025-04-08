@@ -1,0 +1,196 @@
+workflow:
+  name: "soccer-workflow-standings"
+  title: "Soccer Workflow Standings"
+  description: "Workflow to produce soccer standings."
+  context-variables:
+    sportradar-soccer:
+      sportradar_api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+  inputs:
+    event_code: "$.get('event_code') or None"
+  outputs:
+    events: "$.get('events')"
+    workflow-status: "$.get('event_exists') is not True and 'skipped' or 'executed'"
+  
+  tasks:
+    
+    ## load event
+
+    # 0 load-event-by-code
+    - type: "document"
+      name: "load-event-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('event_code') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 1 load-event-by-schedule
+    - type: "document"
+      name: "load-event-by-schedule"
+      description: "Search for schedule events (sportradar)."
+      condition: "$.get('event_exists') is not True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=8)}"
+        value.version_control.processing: "{'$ne': True}"
+        value.version_control.research_standings_status: "{'$exists': False}"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 2 sportradar-soccer-mapping
+    - type: "mapping"
+      name: "sportradar-soccer-mapping"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('event_exists') is True"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        event_code: "$.get('event_code')"
+        stats_count: "$.get('research_standings_count')"
+        season: "$.get('season')"
+        season_title: "$.get('season_title')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+
+    # 3 version-control-update-schedule
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'research_standings_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    ## load match stats
+    
+    # 4 fetch-event-standings
+    - type: "connector"
+      name: "fetch-event-standings"
+      description: "Get a season standings from SportRadar"
+      condition: "$.get('event_exists') is True and $.get('season') is not None"
+      connector:
+        name: "sportradar-soccer"
+        command: "get-seasons/{season_id}/{data_type}"
+        command_attribute:
+          season_id: "$.get('season')"
+          data_type: "'standings.json'"
+      inputs:
+        api_key: "$.get('sportradar_api_key')"
+      outputs:
+        result-standings: "[x for x in $.get('standings') if x.get('type') == 'total']"
+
+    # 5 prompt-reporter-standings
+    - type: "prompt"
+      name: "prompt-reporter-standings"
+      description: "Reporter standings."
+      condition: "$.get('event_exists') is True and $.get('season') is not None"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        title: "$.get('title')"
+        standings: "$.get('result-standings')"
+      outputs:
+        research-standings: "$"
+        research-standings-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"{c.get('title', '')}",
+              'metadata': {
+                'content_type': 'competitors-standings',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    ## save / update documents
+    
+    # 6 update-snippets
+    - type: "document"
+      name: "update-snippets"
+      condition: "$.get('event_exists') is True"
+      description: "Update the snippets."
+      config:
+        action: "bulk-save"
+        embed-vector: true
+        force-update: true
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      document_name: "content-snippet"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            *$.get('research-standings-bulk', [])
+          ]
+
+    # 7 version-control-success-schedule
+    - type: "document"
+      name: "version-control-success-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': False,
+              'research_standings_count': $.get('stats_count', 0) + 1,
+              'research_standings_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"

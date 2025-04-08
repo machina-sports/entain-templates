@@ -1,0 +1,43 @@
+agent:
+  name: "soccer-scheduler-workflow"
+  title: "Soccer Scheduler Config"
+  description: "Agent responsible for scheduling workflows."
+  context:
+    config-frequency: 1
+  workflows:
+        
+    # Workflow Standings
+    - name: "soccer-workflow-standings"
+      description: "Soccer Standings"
+      outputs:
+        soccer-workflow-standings: "$.get('workflow-status', False)"
+
+    # Workflow Competitors
+    - name: "soccer-workflow-competitors"
+      description: "Soccer Competitors"
+      outputs:
+        soccer-workflow-competitors: "$.get('workflow-status', False)"
+
+    # Workflow Odds
+    - name: "soccer-workflow-odds"
+      description: "Soccer Odds"
+      outputs:
+        soccer-workflow-odds: "$.get('workflow-status', False)"
+
+    # Workflow Article BR
+    - name: "soccer-workflow-article-br"
+      description: "Soccer Article BR"
+      outputs:
+        soccer-workflow-article-br: "$.get('workflow-status', False)"
+
+    # Workflow Article EN
+    - name: "soccer-workflow-article-en"
+      description: "Soccer Article EN"
+      outputs:
+        soccer-workflow-article-en: "$.get('workflow-status', False)"
+
+    # Reporter Image
+    - name: "reporter-image"
+      description: "Reporter Image"
+      outputs:
+        reporter-image: "$.get('workflow-status', False)"

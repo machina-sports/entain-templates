@@ -80,10 +80,13 @@ mappings:
       competition_id: "$.get('event_selected', {}).get('sport_event', {}).get('sport_event_context', {}).get('competition', {}).get('id')"
       competition_name: "$.get('event_selected', {}).get('sport_event', {}).get('sport_event_context', {}).get('competition', {}).get('name')"
       event_code: "$.get('event_selected', {}).get('sport_event', {}).get('id')"
-      event_date: |
-        $.get('event_selected', {}).get('start_time').strftime('%Y-%m-%d')
+      event_date: "$.get('event_selected', {}).get('start_time').strftime('%Y-%m-%d')"
+      event_days_ago: |
+        ($.get('event_selected', {}).get('start_time') - timedelta(days=1)).strftime('%Y-%m-%d')
       event_day_before: |
         ($.get('event_selected', {}).get('start_time') - timedelta(days=1)).strftime('%Y-%m-%d')
+      event_day_of_week: "$.get('event_selected', {}).get('start_time').strftime('%A')"
+      event_date_time: "$.get('event_selected', {}).get('start_time').strftime('%Y-%m-%d %H:%M')"
       image_count: "$.get('event_selected', {}).get('version_control', {}).get('image_count', 0)"
       research_news_count: "$.get('event_selected', {}).get('version_control', {}).get('research_news_count', 0)"
       research_odds_count: "$.get('event_selected', {}).get('version_control', {}).get('research_odds_count', 0)"
@@ -97,7 +100,7 @@ mappings:
       team_away_id: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[1].get('id')"
       title: "$.get('event_selected', {}).get('title')"
       widget-match-embed: "$.get('event_selected', {}).get('widget-match-embed')"
-      venue_title: f"{$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('name')} ({$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('city')}, {$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('country')})"
+      venue_title: f"{$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('name')} ({$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('city_name')}, {$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('country_name')})"
       venue_capacity: "$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('capacity')"
       venue_city: "$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('city')"
       venue_country: "$.get('event_selected', {}).get('sport_event', {}).get('venue', {}).get('country')"

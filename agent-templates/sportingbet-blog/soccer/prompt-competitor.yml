@@ -1,0 +1,50 @@
+prompts:
+
+  # prompt-soccer-competitor
+  - type: "prompt"
+    title: "Soccer Competitor"
+    name: "prompt-soccer-competitor"
+    description: "Generate structured analysis snippets for a single team using their statistical data"
+    schema:
+      title: "SoccerCompetitor"
+      description: "Analysis structure for team statistics and performance metrics"
+      type: "object"
+      properties:
+        snippets:
+          type: "array"
+          description: "Analysis snippets based on statistical categories"
+          items:
+            type: "object"
+            properties:
+              title:
+                type: "string"
+                enum: [
+                  "Scoring Profile",
+                  "Attacking Efficiency",
+                  "Possession Analysis",
+                  "Defensive Metrics",
+                  "Set Piece Performance",
+                  "Passing Patterns",
+                  "Counter Attack Analysis",
+                  "Disciplinary Record"
+                ]
+              content:
+                type: "string"
+                description: |
+                  Statistical analysis using the following data points:
+                  - Offensive: goals_per_game, shots_on_target, possession_percentage, pass_accuracy
+                  - Defensive: goals_conceded, clean_sheets, interceptions, tackles
+                  - Efficiency: expected_goals, expected_goals_against, key_passes
+                  - Style: set_piece_goals, counter_attack_goals, cards
+                  
+                  Requirements:
+                  1. Use exact numbers from team_stats mapping
+                  2. Compare current stats to league averages when relevant
+                  3. Highlight standout metrics (both positive and negative)
+                  4. Focus on betting-relevant insights
+                  5. Avoid generic statements - use specific data points
+                  6. Maximum 3 sentences per snippet
+            required: ["title", "content"]
+          minItems: 5
+          maxItems: 5
+      required: ["snippets"]

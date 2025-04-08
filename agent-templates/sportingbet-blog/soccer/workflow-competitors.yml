@@ -1,0 +1,542 @@
+workflow:
+  name: "soccer-workflow-competitors"
+  title: "Soccer Workflow Competitors"
+  description: "Workflow to produce soccer competitors."
+  context-variables:
+    sportradar-soccer:
+      sportradar_api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+  inputs:
+    event_code: "$.get('event_code') or None"
+  outputs:
+    events: "$.get('events')"
+    workflow-status: "$.get('event_exists') is not True and 'skipped' or 'executed'"
+  
+  tasks:
+    
+    ## load event
+
+    # 0 load-event-by-code
+    - type: "document"
+      name: "load-event-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('event_code') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 1 load-event-by-schedule
+    - type: "document"
+      name: "load-event-by-schedule"
+      description: "Search for schedule events (sportradar)."
+      condition: "$.get('event_exists') is not True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=8)}"
+        value.version_control.processing: "{'$ne': True}"
+        value.version_control.research_competitors_status: "{'$exists': False}"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 2 sportradar-soccer-mapping
+    - type: "mapping"
+      name: "sportradar-soccer-mapping"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('event_exists') is True"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        event_code: "$.get('event_code')"
+        season: "$.get('season')"
+        season_title: "$.get('season_title')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+
+    # 3 version-control-update-schedule
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'research_competitors_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    ## load competitor home latest matches
+    
+    # 4 fetch-competitor
+    - type: "connector"
+      name: "fetch-competitor-home"
+      description: "Get a competitor data from SportRadar" 
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "sportradar-soccer"
+        command: "get-competitors/{competitor_id}/{data_type}"
+        command_attribute:
+          competitor_id: "$.get('team_home_id')"
+          data_type: "'summaries.json'"
+      inputs:
+        api_key: "$.get('sportradar_api_key')"
+      outputs:
+        result-competitor: |
+          [
+            {
+              'sport_event': c.get('sport_event', ''),
+              'sport_event_status': c.get('sport_event_status', '')
+            }
+            for c in $.get('summaries', [])[:3]
+          ]
+        last: "$.get('summaries', [])[0] if len($.get('summaries', [])) > 0 else None"
+        last_plus: "$.get('summaries', [])[1] if len($.get('summaries', [])) > 1 else None"
+        last_plus_plus: "$.get('summaries', [])[2] if len($.get('summaries', [])) > 2 else None"
+
+    # 5 mapping-home-last-match
+    - type: "mapping"
+      name: "mapping-last-match"
+      description: "Mapping data from last match."
+      condition: "$.get('event_exists') is True and $.get('last') is not None"
+      inputs:
+        item: "$.get('last')"
+        competitor_id: "$.get('team_home_id')"
+      outputs:
+        last_match: "$.get('last_match')"
+        competitors: "$.get('competitors')"
+        competitor_home_name: "$.get('competitor_home_name')"
+        competitor_away_name: "$.get('competitor_away_name')"
+        competitor_home_sr_id: "$.get('competitor_home_sr_id')"
+        competitor_away_sr_id: "$.get('competitor_away_sr_id')"
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        last_match_context: "$.get('event_context')"
+        last_match_date: "$.get('event_date')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_statistics: "$.get('statistics')"
+        last_match_status: "$.get('event_status')"
+        venue: "$.get('venue')"
+        venue_title: "$.get('venue_title')"
+        venue_city: "$.get('venue_city')"
+        venue_country: "$.get('venue_country')"
+        venue_id: "$.get('venue_id')"
+        venue_sr_id: "$.get('venue_sr_id')"
+
+    # 6 prompt-soccer-home-last-match
+    - type: "prompt"
+      name: "prompt-soccer-last-match"
+      description: "Prompt soccer last match."
+      condition: "$.get('event_exists') is True and $.get('last') is not None"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        selected_team: "$.get('team_home_name')"
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        last_match_competitors: "$.get('competitors')"
+        last_match_event_date: "$.get('last_match_date')"
+        last_match_context: "$.get('last_match_context')"
+        last_match_statistics: "$.get('last_match_statistics')"
+        last_match_status: "$.get('last_match_status')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_venue: "$.get('venue')"
+      outputs:
+        research-home-last-match-bulk: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': f"{c.get('title', '')}",
+              'metadata': {
+                'content_type': 'last-match-analysis',
+                'competitor_id': '$.(team_home_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+        research-home-last-match-key_players: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': c.get('title', ''),
+              'metadata': {
+                'content_type': 'last-match-key-players',
+                'competitor_id': '$.(team_home_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('key_players', [])
+          ]
+
+    # 7 mapping-home-last-plus-match
+    - type: "mapping"
+      name: "mapping-last-match"
+      description: "Mapping data from last match."
+      condition: "$.get('event_exists') is True and $.get('last_plus') is not None"
+      inputs:
+        item: "$.get('last_plus')"
+        competitor_id: "$.get('team_home_id')"
+      outputs:
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        competitors: "$.get('competitors')"
+        competitor_home_name: "$.get('competitor_home_name')"
+        competitor_away_name: "$.get('competitor_away_name')"
+        competitor_home_sr_id: "$.get('competitor_home_sr_id')"
+        competitor_away_sr_id: "$.get('competitor_away_sr_id')"
+        last_match: "$.get('last_match')"
+        last_match_context: "$.get('event_context')"
+        last_match_date: "$.get('event_date')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_statistics: "$.get('statistics')"
+        last_match_status: "$.get('event_status')"
+        venue: "$.get('venue')"
+        venue_title: "$.get('venue_title')"
+        venue_city: "$.get('venue_city')"
+        venue_country: "$.get('venue_country')"
+        venue_id: "$.get('venue_id')"
+        venue_sr_id: "$.get('venue_sr_id')"
+
+    # 8 prompt-soccer-home-last-plus-match
+    - type: "prompt"
+      name: "prompt-soccer-last-match"
+      description: "Prompt soccer last match."
+      condition: "$.get('event_exists') is True and $.get('last_plus') is not None"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        selected_team: "$.get('team_home_name')"
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        last_match_competitors: "$.get('competitors')"
+        last_match_event_date: "$.get('last_match_date')"
+        last_match_context: "$.get('last_match_context')"
+        last_match_statistics: "$.get('last_match_statistics')"
+        last_match_status: "$.get('last_match_status')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_venue: "$.get('venue')"
+      outputs:
+        research-home-last-plus-match-bulk: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': f"{c.get('title', '')}",
+              'metadata': {
+                'content_type': 'last-match-analysis',
+                'competitor_id': '$.(team_home_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+        research-home-last-plus-match-key_players: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': c.get('title', ''),
+              'metadata': {
+                'content_type': 'last-match-key-players',
+                'competitor_id': '$.(team_home_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('key_players', [])
+          ]
+
+    ## load competitor away latest matches
+    
+    # 9 fetch-competitor
+    - type: "connector"
+      name: "fetch-competitor-away"
+      description: "Get a competitor data from SportRadar" 
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "sportradar-soccer"
+        command: "get-competitors/{competitor_id}/{data_type}"
+        command_attribute:
+          competitor_id: "$.get('team_away_id')"
+          data_type: "'summaries.json'"
+      inputs:
+        api_key: "$.get('sportradar_api_key')"
+      outputs:
+        result-competitor: |
+          [
+            {
+              'sport_event': c.get('sport_event', ''),
+              'sport_event_status': c.get('sport_event_status', '')
+            }
+            for c in $.get('summaries', [])[:3]
+          ]
+        last: "$.get('summaries', [])[0] if len($.get('summaries', [])) > 0 else None"
+        last_plus: "$.get('summaries', [])[1] if len($.get('summaries', [])) > 1 else None"
+        last_plus_plus: "$.get('summaries', [])[2] if len($.get('summaries', [])) > 2 else None"
+
+    # 10 mapping-away-last-match
+    - type: "mapping"
+      name: "mapping-last-match"
+      description: "Mapping data from last match."
+      condition: "$.get('event_exists') is True and $.get('last') is not None"
+      inputs:
+        item: "$.get('last')"
+        competitor_id: "$.get('team_away_id')"
+      outputs:
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        competitors: "$.get('competitors')"
+        competitor_home_name: "$.get('competitor_home_name')"
+        competitor_away_name: "$.get('competitor_away_name')"
+        competitor_home_sr_id: "$.get('competitor_home_sr_id')"
+        competitor_away_sr_id: "$.get('competitor_away_sr_id')"
+        last_match: "$.get('last_match')"
+        last_match_context: "$.get('event_context')"
+        last_match_date: "$.get('event_date')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_statistics: "$.get('statistics')"
+        last_match_status: "$.get('event_status')"
+        venue: "$.get('venue')"
+        venue_title: "$.get('venue_title')"
+        venue_city: "$.get('venue_city')"
+        venue_country: "$.get('venue_country')"
+        venue_id: "$.get('venue_id')"
+        venue_sr_id: "$.get('venue_sr_id')"
+
+    # 11 prompt-soccer-away-last-match
+    - type: "prompt"
+      name: "prompt-soccer-last-match"
+      description: "Prompt soccer last match."
+      condition: "$.get('event_exists') is True and $.get('last') is not None"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        selected_team: "$.get('team_home_name')"
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        last_match_competitors: "$.get('competitors')"
+        last_match_event_date: "$.get('last_match_date')"
+        last_match_context: "$.get('last_match_context')"
+        last_match_statistics: "$.get('last_match_statistics')"
+        last_match_status: "$.get('last_match_status')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_venue: "$.get('venue')"
+      outputs:
+        research-away-last-match-bulk: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': f"{c.get('title', '')}",
+              'metadata': {
+                'content_type': 'last-match-analysis',
+                'competitor_id': '$.(team_away_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+        research-away-last-match-key_players: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': c.get('title', ''),
+              'metadata': {
+                'content_type': 'last-match-key-players',
+                'competitor_id': '$.(team_away_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('key_players', [])
+          ]
+
+    # 12 mapping-away-last-plus-match
+    - type: "mapping"
+      name: "mapping-last-match"
+      description: "Mapping data from last match."
+      condition: "$.get('event_exists') is True and $.get('last_plus') is not None"
+      inputs:
+        item: "$.get('last_plus')"
+        competitor_id: "$.get('team_away_id')"
+      outputs:
+        last_match: "$.get('last_match')"
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        competitors: "$.get('competitors')"
+        competitor_home_name: "$.get('competitor_home_name')"
+        competitor_away_name: "$.get('competitor_away_name')"
+        competitor_home_sr_id: "$.get('competitor_home_sr_id')"
+        competitor_away_sr_id: "$.get('competitor_away_sr_id')"
+        last_match_context: "$.get('event_context')"
+        last_match_date: "$.get('event_date')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_statistics: "$.get('statistics')"
+        last_match_status: "$.get('event_status')"
+        venue: "$.get('venue')"
+        venue_title: "$.get('venue_title')"
+        venue_city: "$.get('venue_city')"
+        venue_country: "$.get('venue_country')"
+        venue_id: "$.get('venue_id')"
+        venue_sr_id: "$.get('venue_sr_id')"
+
+    # 13 prompt-soccer-away-last-plus-match
+    - type: "prompt"
+      name: "prompt-soccer-last-match"
+      description: "Prompt soccer last match."
+      condition: "$.get('event_exists') is True and $.get('last_plus') is not None"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        selected_team: "$.get('team_home_name')"
+        event_days_ago: "$.get('event_days_ago')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        last_match_competitors: "$.get('competitors')"
+        last_match_event_date: "$.get('last_match_date')"
+        last_match_context: "$.get('last_match_context')"
+        last_match_statistics: "$.get('last_match_statistics')"
+        last_match_status: "$.get('last_match_status')"
+        last_match_title: "$.get('last_match_title')"
+        last_match_venue: "$.get('venue')"
+      outputs:
+        research-away-last-plus-match-bulk: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': f"{c.get('title', '')}",
+              'metadata': {
+                'content_type': 'last-match-analysis',
+                'competitor_id': '$.(team_away_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+        research-away-last-plus-match-key_players: |
+          [
+            {
+              'subject': '$.(last_match_title)',
+              'text': c.get('content', ''),
+              'title': c.get('title', ''),
+              'metadata': {
+                'content_type': 'last-match-key-players',
+                'competitor_id': '$.(team_away_id)',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('key_players', [])
+          ]
+
+    ## save / update documents
+    
+    # 14 update-snippets
+    - type: "document"
+      name: "update-snippets"
+      condition: "$.get('event_exists') is True"
+      description: "Update the snippets."
+      config:
+        action: "bulk-save"
+        embed-vector: true
+        force-update: true
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      document_name: "content-snippet"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            *$.get('research-home-last-match-bulk', []),
+            *$.get('research-home-last-match-key_players', []),
+            *$.get('research-away-last-match-bulk', []),
+            *$.get('research-away-last-match-key_players', []),
+            *$.get('research-home-last-plus-match-bulk', []),
+            *$.get('research-home-last-plus-match-key_players', []),
+            *$.get('research-away-last-plus-match-bulk', []),
+            *$.get('research-away-last-plus-match-key_players', [])
+          ]
+
+    # 15 version-control-success-schedule
+    - type: "document"
+      name: "version-control-success-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': False,
+              'research_competitors_count': $.get('event_selected').get('version_control', {}).get('research_competitors_count', 0) + 1,
+              'research_competitors_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"

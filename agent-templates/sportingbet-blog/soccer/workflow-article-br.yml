@@ -1,0 +1,471 @@
+workflow:
+  name: "soccer-workflow-article-br"
+  title: "Soccer Workflow Article BR"
+  description: "Workflow to produce an article in Portuguese."
+  context-variables:
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+  inputs:
+    event_code: "$.get('event_code') or None"
+  outputs:
+    events: "$.get('events')"
+    workflow-status: "$.get('event_exists') is not True and 'skipped' or 'executed'"
+  
+  tasks:
+    
+    ## load event
+
+    # 0 load-event-by-code
+    - type: "document"
+      name: "load-event-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('event_code') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 1 load-event-by-schedule
+    - type: "document"
+      name: "load-event-by-schedule"
+      description: "Search for schedule events (sportradar)."
+      condition: "$.get('event_exists') is not True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=8)}"
+        value.version_control.processing: "{'$ne': True}"
+        value.version_control.article_br_status: "{'$exists': False}"
+        value.version_control.research_odds_status: "'processed'"
+        value.version_control.research_standings_status: "'processed'"
+        value.version_control.research_competitors_status: "'processed'"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 2 sportradar-soccer-mapping
+    - type: "mapping"
+      name: "sportradar-soccer-mapping"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('event_exists') is True"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        article_count: "$.get('article_count')"
+        competition_id: "$.get('competition_id')"
+        event_code: "$.get('event_code')"
+        event_date: "$.get('event_date')"
+        event_date_time: "$.get('event_date_time')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+        venue_title: "$.get('venue_title')"
+        widget-match-embed: "$.get('widget-match-embed')"
+
+    # 3 version-control-update-schedule
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'article_br_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    ## load knowledge base
+
+    # # 4 Load event documents
+    # - type: "document"
+    #   name: "load-event-documents"
+    #   description: "Load event documents"
+    #   condition: "$.get('event_exists') is True"
+    #   config:
+    #     action: "search"
+    #     threshold-docs: 100
+    #     threshold-similarity: 0.01
+    #     search-limit: 1000
+    #     search-vector: true
+    #   connector:
+    #     name: "machina-ai"
+    #     command: "invoke_embedding"
+    #     model: "text-embedding-3-small"
+    #   inputs:
+    #     name: "'content-snippet'"
+    #     search-limit: "'1000'"
+    #     search-query: "$.get('messages')"
+    #   outputs:
+    #     event_documents: "$.get('documents', [])"
+
+    # 4 Load home latest match analysis
+    - type: "document"
+      name: "load-home-latest-matches-analysis"
+      description: "Load home latest matches analysis"
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-vector: false
+        search-limit: 50
+      filters:
+        metadata.competitor_id: "$.get('team_home_id')"
+        metadata.content_type: "'last-match-analysis'"
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'50'"
+      outputs:
+        docs_home_latest_match_analysis: |
+          [
+            {
+              **x.get('value', '')
+            }
+            for x in $.get('documents', [])
+          ]
+
+    # 5 Load away latest match analysis
+    - type: "document"
+      name: "load-away-latest-match-analysis"
+      description: "Load away latest match analysis"
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-vector: false
+        search-limit: 50
+      filters:
+        metadata.competitor_id: "$.get('team_away_id')"
+        metadata.content_type: "'last-match-analysis'"
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'50'"
+      outputs:
+        docs_away_latest_match_analysis: |
+          [
+            {
+              **x.get('value', '')
+            }
+            for x in $.get('documents', [])
+          ]
+
+    # 6 Load home key players
+    - type: "document"
+      name: "load-home-key-players"
+      description: "Load home key players"
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-vector: false
+        search-limit: 50
+      filters:
+        metadata.competitor_id: "$.get('team_home_id')"
+        metadata.content_type: "'last-match-key-players'"
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'50'"
+      outputs:
+        docs_home_key_players: |
+          [
+            {
+              **x.get('value', '')
+            }
+            for x in $.get('documents', [])
+          ] 
+
+    # 7 Load away key players
+    - type: "document"
+      name: "load-away-key-players"
+      description: "Load away key players"
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-vector: false
+        search-limit: 50
+      filters:
+        metadata.competitor_id: "$.get('team_away_id')"
+        metadata.content_type: "'last-match-key-players'"
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'50'"
+      outputs:
+        docs_away_key_players: |
+          [
+            {
+              **x.get('value', '')
+            }
+            for x in $.get('documents', [])
+          ]
+
+    # 8 Load match odds
+    - type: "document"
+      name: "load-match-odds"
+      description: "Load match odds"
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-vector: false
+        search-limit: 50
+      filters:  
+        metadata.content_type: "'odds-analysis'"
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'50'"
+      outputs:
+        docs_match_odds: |
+          [
+            {
+              **x.get('value', '')
+            } 
+            for x in $.get('documents', [])
+          ] 
+
+    # 9 Load match standings
+    - type: "document"
+      name: "load-match-standings"
+      description: "Load match standings"
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "search"
+        search-vector: false
+        search-limit: 50
+      filters:
+        metadata.content_type: "'competitors-standings'"
+        metadata.event_code: "$.get('event_code')"    
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'50'"
+      outputs:
+        docs_match_standings: |
+          [
+            {
+              **x.get('value', '')
+            }
+            for x in $.get('documents', [])
+          ]
+
+    ## generate article
+
+    # 10 soccer-prompt-article-br-heading
+    - type: "prompt"
+      name: "soccer-prompt-article-br-heading"
+      description: "Generate a preview for the upcoming game"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        event_date: "$.get('event_date')"
+        event_date_time: "$.get('event_date_time')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        odds-analysis: "$.get('docs_match_odds', [])"
+        standings: "$.get('docs_match_standings', [])"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        venue_title: "$.get('venue_title')"
+      outputs:
+        reporter-article-br-heading: "$.get('title')"  
+        reporter-article-br-subtitle: "$.get('subtitle')"
+        reporter-article-br-event-name: "$.get('event_name')"
+        reporter-article-br-event-date-time: "$.get('event_date_time')"
+        reporter-article-br-event-venue: "$.get('event_venue')"
+        reporter-article-br-slug: "$.get('slug')"
+
+    # 11 soccer-prompt-article-br-odds
+    - type: "prompt"
+      name: "soccer-prompt-article-br-odds"
+      description: "Generate a preview for the upcoming game"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        event_date: "$.get('event_date')"
+        event_date_time: "$.get('event_date_time')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        odds-analysis: "$.get('docs_match_odds', [])"
+      outputs:
+        reporter-article-br-odds-title: "$.get('section_title')"
+        reporter-article-br-odds-content: "$.get('section_content')"
+
+    # 12 soccer-prompt-article-br-team (home)
+    - type: "prompt"
+      name: "soccer-prompt-article-br-team"
+      description: "Generate a preview for the upcoming game"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        event_date: "$.get('event_date')"
+        event_date_time: "$.get('event_date_time')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        docs_home_latest_match_analysis: "$.get('docs_home_latest_match_analysis', [])"
+      outputs:
+        reporter-article-br-home-team-title: "$.get('section_title')"
+        reporter-article-br-home-team-content: "$.get('section_content')"
+
+    # 13 soccer-prompt-article-br-team (away)
+    - type: "prompt"
+      name: "soccer-prompt-article-br-team"
+      description: "Generate a preview for the upcoming game"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        event_date: "$.get('event_date')"
+        event_date_time: "$.get('event_date_time')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        docs_away_latest_match_analysis: "$.get('docs_away_latest_match_analysis', [])"
+      outputs:
+        reporter-article-br-away-team-title: "$.get('section_title')"
+        reporter-article-br-away-team-content: "$.get('section_content')"
+
+    # 14 soccer-prompt-article-br-key-players
+    - type: "prompt"
+      name: "soccer-prompt-article-br-key-players"
+      description: "Generate a preview for the upcoming game"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        event_date: "$.get('event_date')"
+        event_date_time: "$.get('event_date_time')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        event_title: "$.get('title')"
+        venue_title: "$.get('venue_title')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        last_matches_home_key_players: "$.get('docs_home_key_players', [])"
+        last_matches_away_key_players: "$.get('docs_away_key_players', [])"
+      outputs:
+        reporter-article-br-key-players-title: "$.get('section_title')"
+        reporter-article-br-key-players-content: "$.get('section_content')"
+
+    # 15 soccer-prompt-article-br-prediction
+    - type: "prompt"
+      name: "soccer-prompt-article-br-prediction"
+      description: "Generate a prediction for the upcoming game"
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        event_date: "$.get('event_date')"
+        event_date_time: "$.get('event_date_time')"
+        event_day_of_week: "$.get('event_day_of_week')"
+        reporter-article-br-home-team: "$.get('reporter-article-br-home-team-content')"
+        reporter-article-br-away-team: "$.get('reporter-article-br-away-team-content')"
+        reporter-article-br-players: "$.get('reporter-article-br-key-players-content')"
+        reporter-article-br-odds: "$.get('reporter-article-br-odds-content')"
+      outputs:
+        reporter-article-br-prediction-title: "$.get('section_title')"
+        reporter-article-br-prediction-content: "$.get('section_content')"
+
+    ## save / update article
+
+    # 16 update-article-br
+    - type: "document"
+      name: "update-article-br"
+      description: "Update the document."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-article: |
+          {
+            'section_1_title': $.get('reporter-article-br-odds-title'),
+            'section_1_content': $.get('reporter-article-br-odds-content'),
+            'section_2_title': $.get('reporter-article-br-home-team-title'),
+            'section_2_content': $.get('reporter-article-br-home-team-content'),
+            'section_3_title': $.get('reporter-article-br-away-team-title'),
+            'section_3_content': $.get('reporter-article-br-away-team-content'),
+            'section_4_title': $.get('reporter-article-br-key-players-title'),
+            'section_4_content': $.get('reporter-article-br-key-players-content'),
+            'section_5_title': $.get('reporter-article-br-prediction-title'),
+            'section_5_content': $.get('reporter-article-br-prediction-content'),
+            'execution': datetime.utcnow(),
+            'event-details': {
+              'match': $.get('reporter-article-br-event-name'),
+              'when': $.get('reporter-article-br-event-date-time'),
+              'venue': $.get('reporter-article-br-event-venue')
+            },
+            'slug': $.get('reporter-article-br-slug'),
+            'title': $.get('reporter-article-br-heading'),
+            'subtitle': $.get('reporter-article-br-subtitle'),
+            'status': 'active',
+            'widget-match-embed': $.get('widget-match-embed'),
+          }
+      metadata:
+        competition: "$.get('competition_id')"
+        document_type: "'content-article'"
+        event_code: "$.get('event_code')"
+        event_type: "$.get('event_type')"
+        language: "'br'"
+
+    # 17 version-control-success-schedule
+    - type: "document"
+      name: "version-control-success-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': False,
+              'article_count': $.get('article_count', 0) + 1,
+              'article_br_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+    

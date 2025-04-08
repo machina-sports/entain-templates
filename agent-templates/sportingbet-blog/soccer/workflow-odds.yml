@@ -1,0 +1,375 @@
+workflow:
+  name: "soccer-workflow-odds"
+  title: "Soccer Workflow Odds"
+  description: "Workflow to produce odds analysis."
+  context-variables:
+    bwin:
+      Bwin-AccessId: "$TEMP_CONTEXT_VARIABLE_BWIN_ACCESS_ID"
+      Bwin-AccessIdToken: "$TEMP_CONTEXT_VARIABLE_BWIN_ACCESS_ID_TOKEN"
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+    tallysight:
+      key: "$TEMP_CONTEXT_VARIABLE_TALLYSIGHT_API_KEY"
+  inputs:
+    disable_tallysight: "$.get('disable_tallysight') or False"
+    event_code: "$.get('event_code') or None"
+  outputs:
+    events: "$.get('events')"
+    workflow-status: "$.get('selected-fixture-exists') is not True and ($.get('event_exists') is not True and 'skipped' or 'failed') or 'executed'"
+  
+  tasks:
+    
+    ## load event
+
+    # 0 load-event-by-code
+    - type: "document"
+      name: "load-event-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('event_code') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.event_code: "$.get('event_code')"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 1 load-event-by-schedule
+    - type: "document"
+      name: "load-event-by-schedule"
+      description: "Search for schedule events (sportradar)."
+      condition: "$.get('event_exists') is not True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=8)}"
+        value.version_control.processing: "{'$ne': True}"
+        value.version_control.research_odds_status: "{'$exists': False}"
+      inputs:
+        name: "{'$in': ['soccer-game']}"
+      outputs:
+        event_exists: "len($.get('documents', [])) > 0"
+        event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
+
+    # 2 sportradar-soccer-mapping
+    - type: "mapping"
+      name: "sportradar-soccer-mapping"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('event_exists') is True"
+      inputs:
+        event_selected: "$.get('event_selected')"
+      outputs:
+        competition_id: "$.get('competition_id')"
+        day_before: "$.get('event_day_before')"
+        event_code: "$.get('event_code')"
+        event_date: "$.get('event_date')"
+        odds_count: "$.get('research_odds_count')"
+        team_home_name: "$.get('team_home_name')"
+        team_away_name: "$.get('team_away_name')"
+        team_home_id: "$.get('team_home_id')"
+        team_away_id: "$.get('team_away_id')"
+        title: "$.get('title')"
+
+    # 3 version-control-update (schedule)
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': True,
+              'research_odds_status': 'processing'
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    ## map tallysight widget
+
+    # 4 load site-leagues
+    - type: "document"
+      name: "load-site-leagues"
+      description: "Search for registered site leagues."
+      condition: "$.get('event_exists') is True and $.get('disable_tallysight') is False"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+      inputs:
+        name: "'site-leagues'"
+      outputs:
+        result-site-leagues: "$.get('documents', [])[0].get('value', {}) if $.get('documents') else None"
+
+    # 5 tallysight-leagues-mapping
+    - type: "mapping"
+      name: "tallysight-leagues-mapping"
+      description: "Transform the tallysight leagues data"
+      condition: "$.get('event_exists') is True and $.get('disable_tallysight') is False"
+      inputs:
+        competition_id: "$.get('competition_id')"
+        site_leagues: "$.get('result-site-leagues')"
+      outputs:
+        league_code: "$.get('league_code')"
+
+    # 6 tallysight-load-match-embed
+    - type: "connector"
+      name: "tallysight-load-match-embed"
+      description: "Load match embed from Tallysight"
+      condition: "$.get('event_exists') is True and $.get('league_code') is not None and $.get('disable_tallysight') is False"
+      continue_on_error: True
+      connector:
+        name: "tallysight"
+        command: "get-api/v2/widgets/tiles/gamelines/leagues/{league}/matchup/{team1}/{team2}/{date}"
+        command_attribute:
+          league: "$.get('league_code')"
+          team1: "$.get('team_home_name')"
+          team2: "$.get('team_away_name')"
+          date: "$.get('event_date')"
+      outputs:
+        widget-match-embed: "$"
+
+    # 7 tallysight-load-match-embed-day-before
+    - type: "connector"
+      name: "tallysight-load-match-embed-day-before"
+      description: "Load match embed from Tallysight"
+      condition: "$.get('event_exists') is True and $.get('league_code') is not None and $.get('widget-match-embed') is None and $.get('disable_tallysight') is False"
+      connector:
+        name: "tallysight"
+        command: "get-api/v2/widgets/tiles/gamelines/leagues/{league}/matchup/{team1}/{team2}/{date}"
+        command_attribute:
+          league: "$.get('league_code')"
+          team1: "$.get('team_home_name')"
+          team2: "$.get('team_away_name')"
+          date: "$.get('day_before')"
+      outputs:
+        widget-match-embed: "$"
+
+    ## map bwin odds
+
+    # 8 load-fixture-by-similarity
+    - type: "document"
+      name: "load-fixture-by-similarity"
+      description: "Load fixture (from sportingbet) by title similarity."
+      config:
+        action: "search"
+        threshold-docs: 1
+        threshold-similarity: 0.10
+        search-limit: 100
+        search-vector: true
+      condition: "$.get('event_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      inputs:
+        name: "'game-fixture'"
+        search-limit: "'100'"
+        search-query: "$.get('title')"
+      outputs:
+        selected-fixture: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        selected-fixture-exists: "len($.get('documents', [])) > 0"
+        selected-fixture-title: "$.get('documents')[0].get('value', {}).get('title') if $.get('documents') else None"
+        selected-fixture-id: "$.get('documents')[0].get('value', {}).get('id', {}).get('entityId') if $.get('documents') else None"
+        similarity-score: "$.get('documents')[0].get('similarity') if $.get('documents') else None"
+        option-selected-fixture: "$.get('documents')[1].get('value', {}) if len($.get('documents', [])) > 1 else None"
+        option-selected-fixture-exists: "len($.get('documents', [])) > 1"
+        option-selected-fixture-title: "$.get('documents')[1].get('value', {}).get('title') if $.get('documents') else None"
+        option-selected-fixture-id: "$.get('documents')[1].get('value', {}).get('id', {}).get('entityId') if $.get('documents') else None"
+
+    # 9 verify-selected-fixture
+    - type: "prompt"
+      name: "verify-selected-fixture"
+      description: "Verify the selected fixture."
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        scheduled-item-title: "$.get('title')"
+        selected-fixture-title: "$.get('selected-fixture-title')"
+        similarity-score: "$.get('similarity-score', 0)"
+      outputs:
+        have_odds: "$.get('is-match')"
+
+    # 10 verify-selected-fixture-option
+    - type: "prompt"
+      name: "verify-selected-fixture-option"
+      description: "Verify the selected fixture."
+      condition: "$.get('event_exists') is True and $.get('have-odds') is False and $.get('option-selected-fixture-exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        scheduled-item-title: "$.get('title')"
+        selected-fixture-title: "$.get('selected-fixture-title')"
+        option-selected-fixture-title: "$.get('option-selected-fixture-title')"
+      outputs:
+        have_odds: "$.get('is-match')"
+
+    # 10 load-market-by-fixture
+    - type: "connector"
+      name: "load-market-by-fixture-schedule"
+      description: "Get a market by fixture from Sportingbet"
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
+      connector:
+        name: "bwin"
+        command: "get-offer/api/{sportId}/{country}/fixtures"
+        command_attribute:
+          country: "'br'"
+          sportId: "'4'"
+      inputs:
+        fixtureIds: "$.get('selected-fixture-id')" 
+      outputs:
+        markets: "$.get('items', [])[0].get('markets', [])"
+        bulk-markets: |
+          [
+            {
+              **m,
+              'title': f"$.(title) - {m.get('name', {}).get('shortText')}"
+            }
+            for m in $.get('items', [])[0].get('markets', [])
+            if m.get('marketType') == 'Over/Under' or m.get('marketSubType') == '2Up3wayPricing'
+          ]
+
+    # 11 research-match-odds
+    - type: "prompt"
+      name: "research-match-odds"
+      description: "Research match odds."
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        title: "$.get('title')"
+        markets: "$.get('bulk-markets')"
+      outputs:
+        research-match-odds: "$"
+        research-match-odds-bulk: |
+          [
+            {
+              'subject': '$.(title)',
+              'text': c.get('content', ''),
+              'title': f"{c.get('title', '')}",
+              'metadata': {
+                'content_type': 'odds-analysis',
+                'event_code': '$.(event_code)',
+                'event_title': '$.(title)',
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    ## save / update documents
+
+    # 12 update-documents
+    - type: "document"
+      name: "update-documents-odds"
+      description: "Update the documents."
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        market-odds: |
+          {
+            "execution": datetime.utcnow(),
+            "content": $.get('research-match-odds'),
+            "bulk-markets": $.get('bulk-markets'),
+            "title": f"{$.get('title')} - Market Odds",
+            "status": 'active'
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+    
+    # 13 update-snippets
+    - type: "document"
+      name: "update-snippets"
+      condition: "$.get('event_exists') is True and $.get('have_odds') is True"
+      description: "Update the snippets."
+      config:
+        action: "bulk-save"
+        embed-vector: true
+        force-update: true
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      document_name: "content-snippet"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: "$.get('research-match-odds-bulk')"
+
+    # 14 version-control-success
+    - type: "document"
+      name: "version-control-success-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'widget-match-embed': $.get('widget-match-embed') if $.get('disable_tallysight') is False else $.get('event_selected').get('widget-match-embed'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'game-fixture-id': $.get('selected-fixture-id'),
+              'processing': False,
+              'research_odds_count': $.get('odds_count', 0) + 1,
+              'research_odds_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
+
+    # 15 version-control-failure
+    - type: "document"
+      name: "version-control-failure-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is False"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        soccer-game: |
+          {
+            **$.get('event_selected'),
+            'version_control': {
+              **$.get('event_selected').get('version_control', {}),
+              'processing': False,
+              'research_odds_failed': $.get('odds_count', 0) + 1,
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        event_code: "$.get('event_code')"
