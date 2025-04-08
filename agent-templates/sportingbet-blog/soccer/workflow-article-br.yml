@@ -432,7 +432,7 @@ workflow:
               'when': $.get('reporter-article-br-event-date-time'),
               'venue': $.get('reporter-article-br-event-venue')
             },
-            'slug': $.get('reporter-article-br-slug'),
+            'slug': f"{$.get('reporter-article-br-slug')}-br",
             'title': $.get('reporter-article-br-heading'),
             'subtitle': $.get('reporter-article-br-subtitle'),
             'status': 'active',

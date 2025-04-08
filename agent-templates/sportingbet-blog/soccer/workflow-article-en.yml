@@ -432,7 +432,7 @@ workflow:
               'when': $.get('reporter-article-en-event-date-time'),
               'venue': $.get('reporter-article-en-event-venue')
             },
-            'slug': $.get('reporter-article-en-slug'),
+            'slug': f"{$.get('reporter-article-en-slug')}-en",
             'title': $.get('reporter-article-en-heading'),
             'subtitle': $.get('reporter-article-en-subtitle'),
             'status': 'active',
@@ -443,7 +443,7 @@ workflow:
         document_type: "'content-article'"
         event_code: "$.get('event_code')"
         event_type: "$.get('event_type')"
-        language: "'br'"
+        language: "'en'"
 
     # 17 version-control-success-schedule
     - type: "document"
