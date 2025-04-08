@@ -1,6 +1,6 @@
 workflow:
-  name: "research-odds"
-  title: "Research Odds"
+  name: "research-odds-nba"
+  title: "Research Odds NBA"
   description: "Workflow to produce odds analysis."
   context-variables:
     bwin:
@@ -33,7 +33,7 @@ workflow:
       filters:
         metadata.event_code: "$.get('event_code')"
       inputs:
-        name: "{'$in': ['nba-game', 'soccer-game']}"
+        name: "{'$in': ['nba-game']}"
       outputs:
         event_exists: "len($.get('documents', [])) > 0"
         event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
@@ -50,11 +50,11 @@ workflow:
         search-vector: false
         search-sorters: ["start_time", 1]
       filters:
-        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=172)}"
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=24)}"
         value.version_control.processing: "{'$ne': True}"
         value.version_control.research_odds_status: "{'$exists': False}"
       inputs:
-        name: "{'$in': ['nba-game', 'soccer-game']}"
+        name: "{'$in': ['nba-game']}"
       outputs:
         event_exists: "len($.get('documents', [])) > 0"
         event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
@@ -64,7 +64,7 @@ workflow:
     - type: "mapping"
       name: "sportradar-nba-event-mapping"
       description: "Transform the sportradar nba data"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True"
       inputs:
         event_selected: "$.get('event_selected')"
       outputs:
@@ -79,61 +79,17 @@ workflow:
         team_away_id: "$.get('team_away_id')"
         title: "$.get('title')"
 
-    # 3 sportradar-soccer-mapping
-    - type: "mapping"
-      name: "sportradar-soccer-mapping"
-      description: "Transform the sportradar soccer data"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
-      inputs:
-        event_selected: "$.get('event_selected')"
-      outputs:
-        competition_id: "$.get('competition_id')"
-        day_before: "$.get('event_day_before')"
-        event_code: "$.get('event_code')"
-        event_date: "$.get('event_date')"
-        odds_count: "$.get('research_odds_count')"
-        team_home_name: "$.get('team_home_name')"
-        team_away_name: "$.get('team_away_name')"
-        team_home_id: "$.get('team_home_id')"
-        team_away_id: "$.get('team_away_id')"
-        title: "$.get('title')"
-
-    # 4 load site-leagues
-    - type: "document"
-      name: "load-site-leagues"
-      description: "Search for registered site leagues."
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
-      config:
-        action: "search"
-        search-limit: 1
-        search-vector: false
-      inputs:
-        name: "'site-leagues'"
-      outputs:
-        result-site-leagues: "$.get('documents', [])[0].get('value', {}) if $.get('documents') else None"
-
-    # 5 tallysight-leagues-mapping
-    - type: "mapping"
-      name: "tallysight-leagues-mapping"
-      description: "Transform the tallysight leagues data"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
-      inputs:
-        competition_id: "$.get('competition_id')"
-        site_leagues: "$.get('result-site-leagues')"
-      outputs:
-        league_code: "$.get('league_code')"
-
     # 6 tallysight-load-match-embed
     - type: "connector"
       name: "tallysight-load-match-embed"
       description: "Load match embed from Tallysight"
-      condition: "$.get('event_exists') is True and $.get('league_code') is not None"
+      condition: "$.get('event_exists') is True"
       continue_on_error: True
       connector:
         name: "tallysight"
         command: "get-api/v2/widgets/tiles/gamelines/leagues/{league}/matchup/{team1}/{team2}/{date}"
         command_attribute:
-          league: "$.get('league_code')"
+          league: "'nba'"
           team1: "$.get('team_home_name')"
           team2: "$.get('team_away_name')"
           date: "$.get('event_date')"
@@ -144,45 +100,23 @@ workflow:
     - type: "connector"
       name: "tallysight-load-match-embed-day-before"
       description: "Load match embed from Tallysight"
-      condition: "$.get('event_exists') is True and $.get('league_code') is not None and $.get('widget-match-embed') is None"
+      condition: "$.get('event_exists') is True and $.get('widget-match-embed') is None"
       connector:
         name: "tallysight"
         command: "get-api/v2/widgets/tiles/gamelines/leagues/{league}/matchup/{team1}/{team2}/{date}"
         command_attribute:
-          league: "$.get('league_code')"
+          league: "'nba'"
           team1: "$.get('team_home_name')"
           team2: "$.get('team_away_name')"
           date: "$.get('day_before')"
       outputs:
         widget-match-embed: "$"
 
-    # 8 version-control-update (schedule)
-    - type: "document"
-      name: "version-control-update-schedule"
-      description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'soccer-game'"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        soccer-game: |
-          {
-            **$.get('event_selected'),
-            'version_control': {
-              **$.get('event_selected').get('version_control', {}),
-              'processing': True,
-              'research_odds_status': 'processing'
-            }
-          }
-      metadata:
-        event_code: "$.get('event_code')"
-
     # 9 version-control-update (nba-game)
     - type: "document"
       name: "version-control-update-nba-game"
       description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True"
       config:
         action: "update"
         embed-vector: false
@@ -242,36 +176,11 @@ workflow:
       outputs:
         is-match: "$.get('is-match')"
 
-    # 12 load-market-by-fixture
-    - type: "connector"
-      name: "load-market-by-fixture-schedule"
-      description: "Get a market by fixture from Sportingbet"
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('event_type') == 'soccer-game'"
-      connector:
-        name: "bwin"
-        command: "get-offer/api/{sportId}/{country}/fixtures"
-        command_attribute:
-          country: "'br'"
-          sportId: "'4'"
-      inputs:
-        fixtureIds: "$.get('selected-fixture-id')" 
-      outputs:
-        markets: "$.get('items', [])[0].get('markets', [])"
-        bulk-markets: |
-          [
-            {
-              **m,
-              'title': f"$.(title) - {m.get('name', {}).get('shortText')}"
-            }
-            for m in $.get('items', [])[0].get('markets', [])
-            if m.get('marketType') == 'Over/Under' or m.get('marketSubType') == '2Up3wayPricing'
-          ]
-
     # 13 load-market-by-fixture-nba-game
     - type: "connector"
       name: "load-market-by-fixture-nba-game"
       description: "Get a market by fixture from Sportingbet"
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
       connector:
         name: "bwin"
         command: "get-offer/api/{sportId}/{country}/fixtures"
@@ -292,39 +201,11 @@ workflow:
             for m in $.get('items', [])[0].get('markets', [])
           ]
 
-    # 14 research-match-odds
-    - type: "prompt"
-      name: "research-match-odds"
-      description: "Research match odds."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True and $.get('event_type') == 'soccer-game'"
-      connector:
-        name: "machina-ai"
-        command: "invoke_prompt"
-        model: "gpt-4o"
-      inputs:
-        title: "$.get('title')"
-        markets: "$.get('bulk-markets')"
-      outputs:
-        research-match-odds: "$"
-        research-match-odds-bulk: |
-          [
-            {
-              'subject': '$.(title)',
-              'text': c.get('content', ''),
-              'title': f"$.(title) - {c.get('title', '')}",
-              'metadata': {
-                'event_code': '$.(event_code)',
-                'language': 'en'
-              }
-            }
-            for c in $.get('snippets', [])
-          ]
-
     # 14 research-nba-match-odds
     - type: "prompt"
       name: "research-nba-match-odds"
       description: "Research match odds."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('have_odds') is True"
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
@@ -388,36 +269,10 @@ workflow:
       inputs:
         parsed-items: "$.get('research-match-odds-bulk')"
 
-    # 17 version-control-success
-    - type: "document"
-      name: "version-control-success-schedule"
-      description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('event_type') == 'soccer-game'"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        soccer-game: |
-          {
-            **$.get('event_selected'),
-            'widget-match-embed': $.get('widget-match-embed'),
-            'version_control': {
-              **$.get('event_selected').get('version_control', {}),
-              'game-fixture-id': $.get('selected-fixture-id'),
-              'processing': False,
-              'research_odds_count': $.get('odds_count', 0) + 1,
-              'research_odds_status': 'processed',
-              'updated': datetime.utcnow()
-            }
-          }
-      metadata:
-        event_code: "$.get('event_code')"
-
     - type: "document"
       name: "version-control-success-nba-game"
       description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is True"
       config:
         action: "update"
         embed-vector: false
@@ -439,33 +294,10 @@ workflow:
       metadata:
         event_code: "$.get('event_code')"
 
-    # 18 version-control-failure
-    - type: "document"
-      name: "version-control-failure-schedule"
-      description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is False and $.get('event_type') == 'soccer-game'"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        soccer-game: |
-          {
-            **$.get('event_selected'),
-            'version_control': {
-              **$.get('event_selected').get('version_control', {}),
-              'processing': False,
-              'research_odds_failed': $.get('odds_count', 0) + 1,
-              'updated': datetime.utcnow()
-            }
-          }
-      metadata:
-        event_code: "$.get('event_code')"
-
     - type: "document"
       name: "version-control-failure-nba-game"
       description: "Update the events document version control."
-      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is False and $.get('event_type') == 'nba-game'"
+      condition: "$.get('event_exists') is True and $.get('selected-fixture-exists') is False"
       config:
         action: "update"
         embed-vector: false

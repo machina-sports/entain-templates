@@ -111,3 +111,6 @@ datasets:
 
   - type: "agent"
     path: "soccer/workflow-scheduler.yml"
+
+  - type: "agent"
+    path: "nba-scheduler.yml"

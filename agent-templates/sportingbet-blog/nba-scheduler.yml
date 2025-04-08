@@ -1,0 +1,31 @@
+agent:
+  name: "nba-scheduler-workflow"
+  title: "NBA Scheduler Config"
+  description: "Agent responsible for scheduling workflows."
+  context:
+    config-frequency: 10
+  workflows:
+        
+    # Reporter Editor
+    - name: "reporter-nba"
+      description: "Reporter NBA Article"
+      outputs:
+        reporter-nba: "$.get('workflow-status', False)"
+
+    # Reporter Image
+    - name: "reporter-image"
+      description: "Reporter Image"
+      outputs:
+        reporter-image: "$.get('workflow-status', False)"
+
+    # Reporter Odds
+    - name: "research-odds-nba"
+      description: "Reporter Odds NBA"
+      outputs:
+        research-odds-nba: "$.get('workflow-status', False)"
+
+    # Reporter Stats
+    - name: "research-stats-nba"
+      description: "Reporter NBA Stats"
+      outputs:
+        research-stats-nba: "$.get('workflow-status', False)"

@@ -3,7 +3,7 @@ agent:
   title: "Bwin Scheduler Config"
   description: "Agent responsible for scheduling workflows."
   context:
-    config-frequency: 60
+    config-frequency: 10
   workflows:
         
     # bwin-sync-nba fixtures
@@ -136,39 +136,3 @@ agent:
       outputs:
         sync-markets-odds-europa-league-status: "$.get('workflow-status', False)"
         
-    # # Reporter Editor
-    # - name: "reporter-article"
-    #   description: "Reporter Article"
-    #   outputs:
-    #     reporter-article: "$.get('workflow-status', False)"
-
-    # # Reporter NBA Article
-    # - name: "reporter-nba"
-    #   description: "Reporter NBA Article"
-    #   outputs:
-    #     reporter-nba: "$.get('workflow-status', False)"
-
-    # # Reporter Image
-    # - name: "reporter-image"
-    #   description: "Reporter Image"
-    #   outputs:
-    #     reporter-image: "$.get('workflow-status', False)"
-
-    # # Reporter Odds
-    # - name: "research-odds"
-    #   description: "Reporter Odds"
-    #   outputs:
-    #     research-odds: "$.get('workflow-status', False)"
-
-    # # Reporter Stats
-    # - name: "research-stats-soccer"
-    #   description: "Reporter Soccer Stats"
-    #   outputs:
-    #     research-stats-soccer: "$.get('workflow-status', False)"
-    #     research-odds: "$.get('workflow-status', False)"
-
-    # # Reporter Stats
-    # - name: "research-stats-nba"
-    #   description: "Reporter NBA Stats"
-    #   outputs:
-    #     research-stats-nba: "$.get('workflow-status', False)"
