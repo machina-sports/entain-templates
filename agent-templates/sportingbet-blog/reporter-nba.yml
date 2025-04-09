@@ -45,7 +45,7 @@ workflow:
         search-vector: false
         search-sorters: ["start_time", 1]
       filters:
-        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=48)}"
+        value.start_time: "{'$gt': datetime.utcnow(), '$lt': datetime.utcnow() + timedelta(hours=24)}"
         value.version_control.processing: "{'$ne': True}"
         value.version_control.article_status: "{'$exists': False}"
         value.version_control.research_odds_status: "'processed'"
