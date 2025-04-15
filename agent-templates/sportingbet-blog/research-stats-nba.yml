@@ -135,7 +135,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         home_own_record: "$.get('home_own_record', {})"
         home_team_name: "$.get('team_home_name')"
@@ -166,7 +166,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       foreach:
         name: "player"
         expr: "$"
@@ -231,7 +231,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         away_own_record: "$.get('away_own_record', {})"
         away_team_name: "$.get('team_away_name')"
@@ -262,7 +262,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       foreach:
         name: "player"
         expr: "$"
@@ -312,7 +312,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       foreach:
         name: "player"
         expr: "$"
@@ -347,7 +347,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       foreach:
         name: "player"
         expr: "$"
@@ -382,7 +382,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         home_team_name: "$.get('team_home_name')"
         home-players-embeddings-bulk: "$.get('home-players-embeddings-bulk')"
@@ -412,7 +412,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         away_team_name: "$.get('team_away_name')"
         away-players-embeddings-bulk: "$.get('away-players-embeddings-bulk')"

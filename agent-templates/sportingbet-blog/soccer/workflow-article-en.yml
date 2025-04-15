@@ -286,7 +286,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         event_date: "$.get('event_date')"
         event_date_time: "$.get('event_date_time')"
@@ -312,7 +312,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         event_date: "$.get('event_date')"
         event_date_time: "$.get('event_date_time')"
@@ -330,7 +330,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         event_date: "$.get('event_date')"
         event_date_time: "$.get('event_date_time')"
@@ -348,7 +348,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         event_date: "$.get('event_date')"
         event_date_time: "$.get('event_date_time')"
@@ -366,7 +366,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         event_date: "$.get('event_date')"
         event_date_time: "$.get('event_date_time')"
@@ -389,7 +389,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         event_date: "$.get('event_date')"
         event_date_time: "$.get('event_date_time')"

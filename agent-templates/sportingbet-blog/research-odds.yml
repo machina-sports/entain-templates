@@ -168,7 +168,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         scheduled-item-title: "$.get('title')"
         selected-fixture-title: "$.get('selected-fixture-title')"
@@ -209,7 +209,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         title: "$.get('title')"
         markets: "$.get('bulk-markets')"

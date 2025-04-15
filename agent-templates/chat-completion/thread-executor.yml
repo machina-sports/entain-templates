@@ -97,7 +97,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         messages: "$.get('question')"
       outputs:
@@ -262,7 +262,7 @@ workflow:
         # model: "deepseek-r1-distill-llama-70b-specdec"
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         documents: |
           [

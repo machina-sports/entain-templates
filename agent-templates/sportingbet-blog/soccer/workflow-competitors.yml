@@ -163,7 +163,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         selected_team: "$.get('team_home_name')"
         event_days_ago: "$.get('event_days_ago')"
@@ -246,7 +246,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         selected_team: "$.get('team_home_name')"
         event_days_ago: "$.get('event_days_ago')"
@@ -357,7 +357,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         selected_team: "$.get('team_home_name')"
         event_days_ago: "$.get('event_days_ago')"
@@ -440,7 +440,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         selected_team: "$.get('team_home_name')"
         event_days_ago: "$.get('event_days_ago')"

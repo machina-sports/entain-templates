@@ -143,7 +143,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         start_time: "$.get('event_selected').get('start_time')"
         content-snippets: |
@@ -162,7 +162,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         start_time: "$.get('event_selected').get('start_time')"
         content-snippets: |

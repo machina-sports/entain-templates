@@ -138,7 +138,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         title: "$.get('title')"
         team: "$.get('team_home_name')"
@@ -167,7 +167,7 @@ workflow:
       connector:
         name: "machina-ai"
         command: "invoke_prompt"
-        model: "gpt-4o"
+        model: "gpt-4.1"
       inputs:
         title: "$.get('title')"
         team: "$.get('team_away_name')"
