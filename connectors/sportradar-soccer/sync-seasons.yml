@@ -1,6 +1,6 @@
 workflow:
   name: "sportradar-soccer-sync-seasons"
-  title: "Soccer - Sync Seasons"
+  title: "Soccer - Seasons"
   description: "Workflow to synchronize seasons from SportRadar API to Machina."
   context-variables:
     debugger:
@@ -84,7 +84,7 @@ workflow:
     - type: "document"
       name: "task-update-seasons"
       description: "Update the seasons document."
-      condition: "$.get('competition') is not None"
+      condition: "$.get('competition') is not None and $.get('seasons') is not None"
       config:
         action: "update"
         embed-vector: false
@@ -110,7 +110,7 @@ workflow:
     - type: "document"
       name: "task-bulk-save-seasons"
       description: "Bulk save the seasons."
-      condition: "$.get('competition') is not None"
+      condition: "$.get('competition') is not None and $.get('seasons') is not None"
       config:
         action: "bulk-save"
         embed-vector: false
@@ -119,7 +119,7 @@ workflow:
         name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
-      document_name: "season"
+      document_name: "'season'"
       documents:
         items: "$.get('seasons_parsed')"
       inputs:
