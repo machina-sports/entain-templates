@@ -79,7 +79,7 @@ workflow:
         name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
-      document_name: "competition"
+      document_name: "'competition'"
       documents:
         items: |
           [

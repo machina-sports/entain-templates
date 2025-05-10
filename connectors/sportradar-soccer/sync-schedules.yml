@@ -127,7 +127,7 @@ workflow:
         name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
-      document_name: "soccer-game"
+      document_name: "'soccer-game'"
       documents:
         items: "$.get('schedules_parsed')"
       inputs:
