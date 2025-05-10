@@ -29,6 +29,14 @@ datasets:
   #   path: "../../connectors/storage/storage.yml"
 
   # sportradar-soccer
+  - type: "mappings"
+    path: "../../connectors/sportradar-soccer/mappings/_mappings.yml"
+  - type: "mappings"
+    path: "../../connectors/sportradar-soccer/mappings/soccer-event-summary.yml"
+  - type: "mappings"
+    path: "../../connectors/sportradar-soccer/mappings/soccer-last-match.yml"
+  - type: "mappings"
+    path: "../../connectors/sportradar-soccer/mappings/soccer-version-control.yml"
   - type: "workflow"
     path: "../../connectors/sportradar-soccer/sync-competitions.yml"
   - type: "workflow"
@@ -106,8 +114,7 @@ datasets:
   # - type: "workflow"
   #   path: "_folders.yml"
 
-  # - type: "mappings"
-  #   path: "_mappings.yml"
+  
   
   # - type: "prompts"
   #   path: "prompt-articles.yml"
