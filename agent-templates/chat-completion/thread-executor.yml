@@ -82,8 +82,6 @@ workflow:
         name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
-      filters:
-        metadata.event_code: "$.get('event_code')"
       inputs:
         name: "'content-snippet'"
         search-limit: "'50'"
@@ -126,28 +124,12 @@ workflow:
       filters:
         metadata.event_code: "$.get('event_code')"
       inputs:
-        name: "{'$in': ['nba-game', 'soccer-game']}"
+        name: "{'$in': ['soccer-game']}"
       outputs:
         event_exists: "len($.get('documents', [])) > 0"
         event_selected: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
         event_type: "$.get('documents')[0].get('name') if $.get('documents') else None"
     
-    # 2 sportradar-nba-event-mapping
-    - type: "mapping"
-      name: "sportradar-nba-event-mapping"
-      description: "Transform the sportradar nba data"
-      condition: "$.get('event_exists') is True and $.get('event_type') == 'nba-game'"
-      inputs:
-        event_selected: "$.get('event_selected')"
-      outputs:
-        event_code: "$.get('event_code')"
-        odds_count: "$.get('research_odds_count')"
-        team_home_name: "$.get('team_home_name')"
-        team_away_name: "$.get('team_away_name')"
-        team_home_id: "$.get('team_home_id')"
-        team_away_id: "$.get('team_away_id')"
-        title: "$.get('title')"
-
     # 3 sportradar-soccer-mapping
     - type: "mapping"
       name: "sportradar-soccer-mapping"

@@ -40,6 +40,8 @@ datasets:
   - type: "workflow"
     path: "../../connectors/sportradar-soccer/sync-competitions.yml"
   - type: "workflow"
+    path: "../../connectors/sportradar-soccer/sync-competitors.yml"
+  - type: "workflow"
     path: "../../connectors/sportradar-soccer/sync-schedules.yml"
   - type: "workflow"
     path: "../../connectors/sportradar-soccer/sync-seasons.yml"
@@ -121,8 +123,8 @@ datasets:
   # - type: "prompts"
   #   path: "prompt-research.yml"
 
-  # - type: "agent"
-  #   path: "_populate.yml"
+  - type: "agent"
+    path: "_populate.yml"
 
   # - type: "agent"
   #   path: "_scheduler.yml"
