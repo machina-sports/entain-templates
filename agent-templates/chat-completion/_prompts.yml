@@ -183,6 +183,3 @@ prompts:
           items:
             type: "string"
             description: "Relevant and engaging follow-up question that builds on the current conversation context."
-        speech_to_avatar:
-          type: "string"
-          description: "The speech to avatar speak to the user, more conversational and engaging, more like a human talking to the user. Must be in the language of the user."
