@@ -1,0 +1,39 @@
+workflow:
+
+  # populate-editorial-scripts
+  name: "populate-editorial-scripts"
+  title: "Setup Editorial Scripts"
+  description: "Populate Editorial Scripts"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "document"
+      name: "install-editorial-scripts"
+      description: "Install editorial scripts."
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        scripts-editorial-competition-briefing: |
+          {
+            "title": "Editorial Competition Briefing",
+            "description": "Editorial Competition Briefing",
+            "name": "scripts-editorial-competition-briefing",
+            "indexes": [
+              "EDITORIAL_COMPETITION_HISTORY",
+              "EDITORIAL_COMPETITION_CHAMPIONS",
+              "EDITORIAL_COMPETITION_EDITION",
+            ]
+          }
+        scripts-editorial-competition-season: |
+          {
+            "title": "Editorial Competition Season",
+            "description": "Editorial Competition Season",
+            "name": "scripts-editorial-competition-season",
+            "indexes": [
+              "EDITORIAL_COMPETITION_SEASON",
+            ]
+          }
+          
