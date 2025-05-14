@@ -1,0 +1,14 @@
+mappings:
+
+  # mapping-soccer-competition-info
+  - type: "mapping"
+    title: "Soccer Competition Info Mapping"
+    name: "mapping-soccer-competition-info"
+    description: "Mapping data from competition info"
+    outputs:
+      competition_info: "$.get('item').get('competition_info', {}) if $.get('item') else {}"
+      competition_title: "$.get('item').get('title', '') if $.get('item') else ''"
+      competition_season: "$.get('item').get('competition_info', {}).get('season', {}) if $.get('item') else {}"
+      competition_stages: "$.get('item').get('competition_info', {}).get('stages', []) if $.get('item') else []"
+      competition_stage_regular: "$.get('item').get('competition_info', {}).get('stages', [])[1] if $.get('item') else {}"
+      version_control: "$.get('item').get('version_control', {}) if $.get('item') else {}"
