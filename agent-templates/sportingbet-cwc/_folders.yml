@@ -36,23 +36,23 @@ workflow:
               "icon": "folder",
               "items": [
                 {
-                  "name": "competitions",
-                  "title": "Competitions",
-                  "description": "The competitions available in the Sportradar API.",
+                  "name": "games",
+                  "title": "Games",
+                  "description": "The games available in the Sportradar API.",
                   "category": "Catalogue",
                   "metadata": {
-                    "name": ["competitions", "competition", "seasons", "season"]
+                    "name": ["soccer-game"]
                   },
                   "sorters": ['_id', -1],
                   "view": "list"
                 },
                 {
-                  "name": "schedules",
-                  "title": "Game Schedule",
-                  "description": "The schedules synced from the Sportradar API.",
+                  "name": "teams",
+                  "title": "Teams",
+                  "description": "The teams available in the Sportradar API.",
                   "category": "Catalogue",
                   "metadata": {
-                    "name": ["soccer-game"]
+                    "name": ["soccer-team"]
                   },
                   "sorters": ['_id', -1],
                   "view": "list"
