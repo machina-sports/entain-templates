@@ -2,6 +2,163 @@ from langchain_openai import ChatOpenAI, OpenAIEmbeddings
 
 from openai import OpenAI
 
+import base64
+
+
+def generate_image(request_data):
+
+    headers = request_data.get("headers")
+
+    params = request_data.get("params")
+
+    api_key = headers.get("api_key", "")
+
+    image_id = params.get("image_id", "")
+
+    model_name = params.get("model", "")
+
+    instruction = params.get("instruction", "")
+
+    if not api_key:
+        return {"status": "error", "message": "API key is required."}
+
+    if not model_name:
+        return {"status": "error", "message": "Model name is required."}
+
+    prompt = f"""
+        Create a 3:2 landscape image blog thumbnail for a football match between Corinthians vs Palmeiras, strictly aligned with the imagery guidelines below, using the provided <brandGuidelines> XML:
+
+        Imagery Guidelines:
+
+        Athlete Illustration Style (ONLY athletes):
+        Illustrate athletes with realistic proportions in dynamic mid-action poses. Apply a strongly pronounced iridescent, chromed effect ONLY to their skin, ensuring an intense metallic, reflective appearance characterized by vibrant, shifting hues and striking color variations. Jerseys and clothing must retain natural textures and clearly reflect the respective club colors for Corinthians and for Palmeiras—without sponsors logos. Motion should be conveyed through dynamic poses, significantly enhanced by the pronounced reflective and iridescent qualities of the chromed skin, explicitly avoiding motion blur.
+
+        General Design Style (All other elements):
+        Maintain sharp, modern, and professional graphic treatments for backgrounds, DOT graphic elements, and overall composition. Lighting should be high-contrast and crisp, simulating stadium floodlights without HDR glow.
+
+        DOT Graphic Element Usage:
+
+        MASK: Crop the entire athlete illustration within a 900×700 px parallelogram tilted 12° right, corner radius 65 px.
+
+        FILLED: Solid DOT in Bright Blue (#0A5EEA) or Bright Deep Blue (#003DC4) positioned behind athletes as an abstract panel for visual depth.
+
+        Background Canvas Options:
+
+        Bright Deep Blue (#003DC4) or Bright Dark Blue (#061F3F) for a dramatic, night-game mood, or
+
+        White (#FFFFFF) for a lighter, more open feel.
+
+        Gradient (Optional, Use Sparingly):
+
+        * Bright Extra Light Blue (#D3ECFF) → Bright Light Blue (#45CAFF): soft, uplifting diagonal sweep.
+        * Bright Light Blue (#45CAFF) → Bright Blue (#0A5EEA): energetic, modern diagonal transition.
+        * Bright Deep Blue (#003DC4) → Bright Dark Blue (#061F3F): dramatic vertical fade for night intensity.
+
+        Composition:
+
+        Leave 15–20% negative space explicitly reserved for text overlays (headlines, match details).
+
+        Camera POV:
+        Low-angle or sideline telephoto, shallow depth of field (ƒ2.8–ƒ4).
+
+        Lighting:
+        High contrast from stadium floodlights, crisp shadows, no HDR glow.
+
+        Mandatory Restrictions:
+
+        * No sponsorship logos on jerseys.
+        * Never include the Sportingbet logo, word-mark, or symbol.
+
+        Full Integrated Brand Guidelines XML:
+
+        <brandGuidelines>
+        <brandName>Sportingbet</brandName>
+
+        <colors>
+            <marketingColors>
+            <color name="Bright Blue" hex="#0A5EEA" prompt="Use for large, vivid background panels or oversized DOT fills to signal energy."/>
+            <color name="Bright Deep Blue" hex="#003DC4" prompt="Primary solid backdrop on dark layouts; pairs with white or bright light blue foreground elements."/>
+            <color name="Bright Dark Blue" hex="#061F3F" prompt="Deep navy shadow tone—excellent for contrast behind cyan accents or white text."/>
+            <color name="Bright Extra Light Blue" hex="#D3ECFF" prompt="Soft cyan wash for subtle sections, gradient starts, or secondary panels."/>
+            <color name="Bright Light Blue" hex="#45CAFF" prompt="Electric pop for gradient end-points, call-to-action strokes, or accent motion trails."/>
+            <color name="Bright Red" hex="#F13131" prompt="High-impact outline of the DOT symbol or dynamic swoosh lines that guide the eye."/>
+            <color name="White" hex="#FFFFFF" prompt="Neutral void to let vibrant blues breathe—ideal for negative space and clean type."/>
+            <color name="Light Grey" hex="#EEEFF1" prompt="Background canvas for accessibility charts or UI components that must stay subdued."/>
+            </marketingColors>
+        </colors>
+
+        <graphicElements>
+            <dotSymbol prompt="Create a 900×700-pixel rounded parallelogram; tilt it 12° to the right; apply a 65-pixel corner radius. It can act as an image mask or a bold filled block.">
+            <dimensions width="900px" height="700px"/>
+            <tilt direction="right" degrees="12"/>
+            <cornerRadius pixels="65px"/>
+            <usage>
+                <imageContainer>true</imageContainer>
+                <outline>false</outline>
+                <filledShape>true</filledShape>
+            </usage>
+            </dotSymbol>
+
+
+        <linearGradients>
+        <gradient startColor="Bright Extra Light Blue" endColor="Bright Light Blue"/>
+        <gradient startColor="Bright Light Blue" endColor="Bright Blue"/>
+        <gradient startColor="Bright Deep Blue" endColor="Bright Dark Blue"/>
+        <gradientPrompts>
+            <prompt>Soft sky-to-electric sweep (top-left ➜ bottom-right) for uplifting tech vibe.</prompt>
+            <prompt>Medium cyan into royal blue diagonal for energetic, modern sports feel.</prompt>
+            <prompt>Deep ocean fade to midnight navy vertical for dramatic, night-game intensity.</prompt>
+        </gradientPrompts>
+        <guidelines>
+            <guideline>Use sparingly to complement design, not overpower it.</guideline>
+            <guideline>Apply only to large areas, never to text or small elements.</guideline>
+            <guideline>Ensure smooth transitions without harsh steps.</guideline>
+        </guidelines>
+        </linearGradients>
+
+        </graphicElements>
+
+        <mandatoryGuidelines>
+            <noSponsorLogos>true</noSponsorLogos>
+            <noSportingbetLogo>true</noSportingbetLogo>
+        </mandatoryGuidelines>
+
+        </brandGuidelines>
+
+    """
+
+    try:
+        llm = OpenAI(api_key=api_key)
+
+        result = llm.images.generate(
+            model=model_name,
+            prompt=prompt,
+            size="1024x1024",
+            quality="low",
+        )
+
+        image_base64 = result.data[0].b64_json
+
+        image_bytes = base64.b64decode(image_base64)
+
+        full_filepath = f"/work/images/{image_id}.webp"
+
+        with open(full_filepath, 'wb') as f:
+
+            f.write(image_bytes)
+
+        final_filename = f"{image_id}.webp"
+
+        result = {
+            "final_filename": final_filename,
+            "full_filepath": full_filepath
+        }
+
+        return {"status": True, "data": result, "message": "Image generated."}
+
+    except Exception as e:
+        return {"status": False, "message": f"Exception when generating image: {e}"} 
+    
 
 def invoke_embedding(params):
 

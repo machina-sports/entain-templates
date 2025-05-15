@@ -5,13 +5,18 @@ workflow:
   title: "Reporter Competition Briefing"
   description: "Workflow to produce soccer reporter competition briefing."
   context-variables:
-    sportradar-soccer:
-      sportradar_api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
     debugger:
       enabled: true
     machina-ai:
       api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+    sportradar-soccer:
+      sportradar_api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
+    stability:
+      api_key: "$TEMP_CONTEXT_VARIABLE_STABILITY_API_KEY"
+    storage:
+      api_key: "$TEMP_CONTEXT_VARIABLE_AZURE_BLOB_STRING"
   inputs:
+    image-briefing: "$.get('image-briefing', 'Create a 3:2 landscape image blog thumbnail for a football match between Corinthians vs Palmeiras')"
     season_id: "$.get('season_id')"
   outputs:
     workflow-status: |
@@ -74,10 +79,10 @@ workflow:
       metadata:
         season_id: "$.get('season_id')"
 
-    # 4 load-existing-snippets
+    # 4 load-existing-articles
     - type: "document"
-      name: "load-existing-snippets"
-      description: "Search for existing snippets in the database."
+      name: "load-existing-articles"
+      description: "Search for existing articles in the database."
       condition: "$.get('competition_exists') is True"
       connector:
         name: "machina-ai"
@@ -88,10 +93,10 @@ workflow:
         search-limit: 100
         search-vector: false
       inputs:
-        name: "'content-snippet'"
+        name: "'content-article'"
       outputs:
-        briefing-snippets: "$"
-        briefing-snippets-bulk: |
+        briefing-articles: "$"
+        briefing-articles-bulk: |
           [
             {
               **d.get('value', {}),
@@ -163,6 +168,68 @@ workflow:
         reporter-article-br-section-content-2: "$.get('section_content_2')"
         reporter-article-br-section-content-3: "$.get('section_content_3')"
 
+    # # 8 generate image
+    # - type: "connector"
+    #   name: "generate image"
+    #   condition: |
+    #     (
+    #       $.(competition_exists) is True
+    #       and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+    #     )
+    #   connector:
+    #     name: "stability"
+    #     command: "generate_image"
+    #   inputs:
+    #     configuration: |
+    #       {
+    #         "aspect_ratio": (None, "16:9"),
+    #         "seed": (None, $.get('seed')),
+    #         "prompt": (None, $.get('image-briefing')),
+    #         "style_preset": (None, "digital-art"),
+    #         "output_format": (None, "webp")
+    #       }
+    #     image_id: "$.get('reporter-article-br-slug')"
+    #   outputs:
+    #     final_filename: f"image-preview-{$.get('final_filename')}"
+    #     full_filepath: "$.get('full_filepath')"
+
+    # 2 generate-image
+    - type: "connector"
+      name: "generate-article-image"
+      description: "Generate an image for an article."
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+        )
+      connector:
+        name: "machina-ai"
+        command: "generate_image"
+      inputs:
+        image_id: "$.get('reporter-article-br-slug')"
+        instruction: "$.get('reporter-article-br-section-content-1')"
+        model: "'gpt-image-1'"
+      outputs:
+        final_filename: f"article-image-{$.get('final_filename')}"
+        full_filepath: "$.get('full_filepath')"
+
+    # 9 store image
+    - type: "connector"
+      name: "store-article-image"
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+        )
+      connector:
+        name: "storage"
+        command: "store_image"
+      inputs:
+        final_filename: "$.get('final_filename')"
+        full_filepath: "$.get('full_filepath')"
+      outputs:
+        image_path: "$.get('data')"
+
     ## save / update documents
     
     # 1 update-competition-article
@@ -185,11 +252,15 @@ workflow:
             'slug': f"{$.get('reporter-article-br-slug')}-br",
             'title': $.get('reporter-article-br-heading'),
             'subtitle': $.get('reporter-article-br-subtitle'),
+            'image_path': $.get('image_path'),
             'status': 'active'
           }
       metadata:
         competition: "$.get('competition_id')"
-        document_type: "'content-article'"
+        competition_code: "$.get('competition_code')"
+        competition_title: "$.get('competition_title')"
+        content_type: "'commentaries-competition-briefing'"
+        script_code: "$.get('briefing-next-topic-to-cover')"
         language: "'br'"
 
     # 1 version-control-success
