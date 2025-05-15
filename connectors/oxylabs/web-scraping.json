@@ -15,6 +15,9 @@
       "post": {
         "summary": "Get information about web pages",
         "parameters": [],
+        "headers": {
+          "Content-Type": "application/json"
+        },
         "requestBody": {
           "required": true,
           "content": {
@@ -26,9 +29,14 @@
                     "type": "string",
                     "description": "The source to scrape",
                     "example": "https://www.google.com"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "The URL to scrape",
+                    "example": "https://www.google.com"
                   }
                 },
-                "required": ["source"]
+                "required": ["source", "url"]
               }
             }
           }

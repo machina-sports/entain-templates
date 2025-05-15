@@ -12,8 +12,9 @@ workflow:
       password: "$TEMP_CONTEXT_VARIABLE_OXYLABS_PASSWORD"
   inputs:
     parser: "$.get('parser') == 'true'"
-    query: "$.get('query')"
+    render: "$.get('render')"
     source: "$.get('source', 'universal')"
+    url: "$.get('url')"
   outputs:
     result: "$.get('result')"
     workflow-status: "'executed'"
@@ -22,16 +23,17 @@ workflow:
     - type: "connector"
       name: "oxylabs-post-queries"
       description: "Scrape a web page."
-      condition: "$.get('query') is not None"
+      condition: "$.get('url') is not None"
       connector:
         name: "oxylabs"
         command: "post-queries"
       inputs:
         body: |
           {
-            "parser": $.get('parser'),  
-            "query": $.get('query'),
-            "source": $.get('source')
+            "parser": $.get('parser'),
+            "render": $.get('render'),
+            "source": $.get('source'),
+            "url": $.get('url'),
           }
       outputs:
         result: "$"
