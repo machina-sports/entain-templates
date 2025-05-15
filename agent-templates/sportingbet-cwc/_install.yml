@@ -22,11 +22,11 @@ datasets:
   - type: "agent"
     path: "_populate.yml"
 
-  # bwin
-  - type: "connector"
-    path: "../../connectors/bwin/bwin.yml"
-  - type: "workflow"
-    path: "../../connectors/bwin/sync-markets-odds.yml"
+  # # bwin
+  # - type: "connector"
+  #   path: "../../connectors/bwin/bwin.yml"
+  # - type: "workflow"
+  #   path: "../../connectors/bwin/sync-markets-odds.yml"
 
   # connectors
   - type: "connector"
@@ -38,11 +38,11 @@ datasets:
   - type: "connector"
     path: "../../connectors/storage/storage.yml"
 
-  # tallysight
-  - type: "connector"
-    path: "../../connectors/tallysight/tallysight.yml"
-  - type: "workflow"
-    path: "../../connectors/tallysight/load-leagues.yml"
+  # # tallysight
+  # - type: "connector"
+  #   path: "../../connectors/tallysight/tallysight.yml"
+  # - type: "workflow"
+  #   path: "../../connectors/tallysight/load-leagues.yml"
 
   # editorial-agent
   - type: "agent"
@@ -54,6 +54,15 @@ datasets:
   - type: "workflow"
     path: "editorial/workflow.yml"
 
+  # reporter-agent
+  - type: "agent"
+    path: "reporter/agent.yml"
+  - type: "prompts"
+    path: "reporter/prompts.yml"
+  - type: "workflow"
+    path: "reporter/scripts.yml"
+  - type: "workflow"
+    path: "reporter/workflow.yml"
 
   # # workflows-soccer
   # - type: "mappings"
@@ -104,14 +113,10 @@ datasets:
   # # - type: "agent"
   #   # path: "agent-producer.yml"
 
-  
-  
-  
   # - type: "prompts"
   #   path: "prompt-articles.yml"
   # - type: "prompts"
   #   path: "prompt-research.yml"
-
 
   # - type: "agent"
   #   path: "_scheduler.yml"

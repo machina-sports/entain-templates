@@ -5,7 +5,7 @@ agent:
   title: "Editorial Competition Briefing"
   description: "Agent responsible for generating soccer editorial competition briefing."
   context:
-    config-frequency: 0.2
+    config-frequency: 1
   context-agent:
     event_code: "$.get('event_code') or None"
   workflows:

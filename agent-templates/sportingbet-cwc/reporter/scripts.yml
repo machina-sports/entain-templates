@@ -1,0 +1,31 @@
+workflow:
+
+  # populate-reporter-scripts
+  name: "populate-reporter-scripts"
+  title: "Populate Reporter Scripts"
+  description: "Populate Reporter Scripts"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "document"
+      name: "install-reporter-scripts-briefing"
+      description: "Install reporter scripts."
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-script: |
+          {
+            "title": "Reporter Competition Briefing",
+            "description": "Reporter Competition Briefing",
+            "name": "content-script",
+            "indexes": [
+              "REPORTER_COMPETITION_HISTORY",
+              "REPORTER_COMPETITION_CHAMPIONS",
+              "REPORTER_COMPETITION_EDITION",
+            ]
+          }
+      metadata:
+        group: "'COMPETITION_ARTICLES'"
