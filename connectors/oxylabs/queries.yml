@@ -1,0 +1,37 @@
+workflow:
+
+  # oxylabs-web-scraping
+  name: "oxylabs-web-scraping"
+  title: "Oxylabs - Web Scraping"
+  description: "Workflow to scrape a web page."
+  context-variables:
+    debugger:
+      enabled: true
+    oxylabs:
+      username: "$TEMP_CONTEXT_VARIABLE_OXYLABS_USERNAME"
+      password: "$TEMP_CONTEXT_VARIABLE_OXYLABS_PASSWORD"
+  inputs:
+    parser: "$.get('parser') == 'true'"
+    query: "$.get('query')"
+    source: "$.get('source', 'universal')"
+  outputs:
+    result: "$.get('result')"
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "connector"
+      name: "oxylabs-post-queries"
+      description: "Scrape a web page."
+      condition: "$.get('query') is not None"
+      connector:
+        name: "oxylabs"
+        command: "post-queries"
+      inputs:
+        body: |
+          {
+            "parser": $.get('parser'),  
+            "query": $.get('query'),
+            "source": $.get('source')
+          }
+      outputs:
+        result: "$"
