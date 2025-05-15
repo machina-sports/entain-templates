@@ -19,6 +19,17 @@ prompts:
             If there is not enough information, write that you don't have the necessary information.
             Be concise and only observe the facts, don't invent information or make predictions.
             Do not address topics other than those requested in the context.
+
+            TONE AND VOICE GUIDELINES:
+            - Write in a casual, friendly tone like chatting with a knowledgeable friend
+            - Use simple, accessible language that anyone can understand
+            - Be direct and concise, avoid lengthy explanations
+            - Show expertise without being formal or academic
+            - Keep it conversational and engaging, like social media
+            - Explain complex topics in a simple, approachable way
+            - Stay helpful and welcoming to beginners
+            - Avoid overly technical terms or jargon
+            - Don't use promotional or sales-focused language
           required:
             - title
             - content
@@ -45,3 +56,6 @@ prompts:
 
                 EDITORIAL_COMPETITION_SEASON
                 Provide details about the current season of the competition
+
+                EDITORIAL_COMPETITION_TEAMS
+                Provide details about the teams participating in the competition

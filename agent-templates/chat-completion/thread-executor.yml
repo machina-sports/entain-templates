@@ -87,7 +87,13 @@ workflow:
         search-limit: "'50'"
         search-query: "$.get('question')"
       outputs:
-        documents: "$.get('documents')"
+        parsed_documents: |
+          [
+            {
+              **d.get('value', {}),
+            }
+            for d in $.get('documents', [])
+          ]
 
     # chat-analysis-prompt
     - type: "prompt"
@@ -131,7 +137,13 @@ workflow:
         search-limit: "'1000'"
         search-query: "$.get('messages')"
       outputs:
-        faq_documents: "$.get('documents')"
+        faq_documents: |
+          [
+            {
+              **d.get('value', {}),
+            }
+            for d in $.get('documents', [])
+          ]
 
     # thread-executor-prompt
     - type: "prompt"
@@ -154,17 +166,9 @@ workflow:
         documents: |
           [
             *$.get('faq_documents', []),
-            *$.get('documents', []),
-          ]
-        event_context: |
-          [
-            $.get('team_home_name'),
-            $.get('team_away_name'),
-            $.get('event_date'),
-            $.get('competition_name'),
+            *$.get('parsed_documents', []),
           ]
         instruction: "'Answer the users question based in the language of the question.'"
-        messages: "$.get('messages')"
         question: "$.get('question')"
       outputs:
         content: "$"

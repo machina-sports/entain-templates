@@ -122,8 +122,10 @@ workflow:
         action: "search"
         search-limit: 1
         search-vector: false
+      filters:
+        metadata.group: "'COMPETITION_BRIEFING'"
       inputs:
-        name: "'scripts-editorial-competition-briefing'"
+        name: "'content-script'"
       outputs:
         briefing-next-topic-to-cover: |
           'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
@@ -190,8 +192,10 @@ workflow:
         action: "search"
         search-limit: 1
         search-vector: false
+      filters:
+        metadata.group: "'COMPETITION_SEASON'"
       inputs:
-        name: "'scripts-editorial-competition-season'"
+        name: "'content-script'"
       outputs:
         season-next-topic-to-cover: |
           'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
