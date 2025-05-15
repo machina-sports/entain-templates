@@ -1,0 +1,12 @@
+mappings:
+
+  - type: "mapping"
+    title: "Oxylabs Transcript Mapping"
+    name: "oxylabs-transcript-mapping"
+    description: "Mapping data from oxylabs transcript"
+    outputs:
+      transcript_text: |
+        [
+          item.get('transcriptSegmentRenderer', {}).get('snippet', {}).get('runs', [])[0].get('text', '')
+          for item in $.get('items', [])
+        ]

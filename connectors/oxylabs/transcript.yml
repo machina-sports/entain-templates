@@ -1,0 +1,56 @@
+workflow:
+
+  # oxylabs-web-transcript
+  name: "oxylabs-web-transcript"
+  title: "Oxylabs - Web Transcript"
+  description: "Workflow to transcribe a web page."
+  context-variables:
+    debugger:
+      enabled: true
+    oxylabs:
+      username: "$TEMP_CONTEXT_VARIABLE_OXYLABS_USERNAME"
+      password: "$TEMP_CONTEXT_VARIABLE_OXYLABS_PASSWORD"
+  inputs:
+    language: "$.get('language', 'pt')"
+    query: "$.get('query')"
+    source: "$.get('source', 'youtube_transcript')"
+  outputs:
+    result: "$.get('result')"
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "connector"
+      name: "oxylabs-post-queries"
+      description: "Scrape a web page."
+      condition: "$.get('query') is not None"
+      connector:
+        name: "oxylabs"
+        command: "post-queries"
+      inputs:
+        body: |
+          {
+            "context": [
+              {
+                "key": "language_code",
+                "value": $.get('language')
+              }
+            ],
+            "query": $.get('query'),
+            "source": $.get('source')
+          }
+      outputs:
+        result: "$"
+
+    - type: "mapping"
+      name: "oxylabs-transcript-mapping"
+      description: "Mapping data from oxylabs transcript"
+      condition: "$.get('result') is not None"
+      inputs:
+        items: "$.get('result', {}).get('results', [])[0].get('content')"
+      outputs:
+        result: "$.get('transcript_text')"
+        result_bulks: |
+          [
+            $.get('transcript_text')[i:i+100])
+            for i in range(0, len($.get('transcript_text')), 100)
+          ]

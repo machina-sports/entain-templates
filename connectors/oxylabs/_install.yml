@@ -27,3 +27,9 @@ datasets:
 
   - type: "workflow"
     path: "queries.yml"
+
+  - type: "workflow"
+    path: "transcript.yml"
+
+  - type: "mappings"
+    path: "mapping.yml"
