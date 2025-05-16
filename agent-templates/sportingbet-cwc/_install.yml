@@ -64,6 +64,16 @@ datasets:
   - type: "workflow"
     path: "reporter/workflow.yml"
 
+  # transcript-agent
+  # - type: "agent"
+  #   path: "transcript/agent.yml"
+  - type: "prompts"
+    path: "transcript/prompts.yml"
+  # - type: "workflow"
+  #   path: "transcript/scripts.yml"
+  - type: "workflow"
+    path: "transcript/workflow.yml"
+
   # # workflows-soccer
   # - type: "mappings"
   #   path: "soccer/mapping-last-match.yml"

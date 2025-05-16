@@ -1,0 +1,19 @@
+agent:
+  
+  # agent-sentimental-competition-briefing
+  name: "agent-sentimental-competition-briefing"
+  title: "Sentimental Competition Briefing"
+  description: "Agent responsible for generating sentimental competition briefing."
+  context:
+    config-frequency: 1
+  context-agent:
+    event_code: "$.get('event_code') or None"
+  workflows:
+    
+    # workflow-sentimental-competition-briefing
+    - name: "workflow-sentimental-competition-briefing"
+      description: "Sentimental Competition Briefing"
+      inputs:
+        event_code: "$.get('event_code')"
+      outputs:
+        workflow-sentimental-competition-briefing: "$.get('workflow-status', False)"

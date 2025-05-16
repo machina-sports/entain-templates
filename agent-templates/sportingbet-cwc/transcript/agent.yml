@@ -1,0 +1,19 @@
+agent:
+  
+  # agent-transcript-video
+  name: "agent-transcript-video"
+  title: "Transcript Video"
+  description: "Agent responsible for transcribing a video."
+  context:
+    config-frequency: 1
+  context-agent:
+    video-code: "$.get('video_code') or None"
+  workflows:
+    
+    # workflow-transcript-video
+    - name: "workflow-transcript-video"
+      description: "Transcript Video"
+      inputs:
+        video-code: "$.get('video_code')"
+      outputs:
+        workflow-transcript-video: "$.get('workflow-status', False)"
