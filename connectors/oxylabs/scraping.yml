@@ -7,6 +7,8 @@ workflow:
   context-variables:
     debugger:
       enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
     oxylabs:
       username: "$TEMP_CONTEXT_VARIABLE_OXYLABS_USERNAME"
       password: "$TEMP_CONTEXT_VARIABLE_OXYLABS_PASSWORD"
