@@ -31,7 +31,7 @@ def generate_image(request_data):
         Imagery Guidelines:
 
         Athlete Illustration Style (ONLY athletes):
-        Illustrate athletes with realistic proportions in dynamic mid-action poses. Apply a strongly pronounced iridescent, chromed effect ONLY to their skin, ensuring an intense metallic, reflective appearance characterized by vibrant, shifting hues and striking color variations. Jerseys and clothing must retain natural textures and clearly reflect the respective club colors for Corinthians and for Palmeiras—without sponsors logos. Motion should be conveyed through dynamic poses, significantly enhanced by the pronounced reflective and iridescent qualities of the chromed skin, explicitly avoiding motion blur.
+        Illustrate athletes in an art style reminiscent of the classic video game "International Superstar Soccer." Depict athletes with pixel-inspired aesthetics, dynamic and exaggerated poses typical of retro sports games. Jerseys and clothing should clearly represent each team's official colors—Corinthians and Palmeiras—but avoid sponsor logos, or recognizable player features. Convey energetic and dynamic movement through pixel-art action lines and poses, explicitly avoiding motion blur to retain clarity and retro authenticity.
 
         General Design Style (All other elements):
         Maintain sharp, modern, and professional graphic treatments for backgrounds, DOT graphic elements, and overall composition. Lighting should be high-contrast and crisp, simulating stadium floodlights without HDR glow.
@@ -98,7 +98,6 @@ def generate_image(request_data):
                 <filledShape>true</filledShape>
             </usage>
             </dotSymbol>
-
 
         <linearGradients>
         <gradient startColor="Bright Extra Light Blue" endColor="Bright Light Blue"/>
