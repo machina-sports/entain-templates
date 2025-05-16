@@ -1,9 +1,9 @@
 workflow:
 
-  # oxylabs-web-transcript
-  name: "oxylabs-web-transcript"
-  title: "Oxylabs - Web Transcript"
-  description: "Workflow to transcribe a web page."
+  # oxylabs-video-transcript
+  name: "oxylabs-video-transcript"
+  title: "Oxylabs - Video Transcript"
+  description: "Workflow to transcribe a video."
   context-variables:
     debugger:
       enabled: true
@@ -21,7 +21,7 @@ workflow:
 
     - type: "connector"
       name: "oxylabs-post-queries"
-      description: "Scrape a web page."
+      description: "Scrape a video transcript."
       condition: "$.get('query') is not None"
       connector:
         name: "oxylabs"
@@ -48,9 +48,31 @@ workflow:
       inputs:
         items: "$.get('result', {}).get('results', [])[0].get('content')"
       outputs:
-        result: "$.get('transcript_text')"
+        transcript-content: "$.get('transcript-content')"
         result_bulks: |
           [
-            $.get('transcript_text')[i:i+100])
-            for i in range(0, len($.get('transcript_text')), 100)
+            $.get('transcript-content')[i:i+100]
+            for i in range(0, len($.get('transcript-content')), 100)
           ]
+
+    - type: "document"
+      name: "update-video-transcript"
+      description: "Update the document."
+      condition: "$.get('result') is not None"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        web-scraping: |
+          {
+            'content': $.get('transcript-content'),
+            'execution': datetime.utcnow(),
+            'version_control': {
+              'processing': False,
+              'transcript_analysis': 'pending',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        video-code: "$.get('query')"

@@ -36,4 +36,34 @@ workflow:
             "url": $.get('url'),
           }
       outputs:
-        result: "$"
+        scraping-content: "$.get('results', [])[0].get('content')"
+
+    - type: "mapping"
+      name: "oxylabs-scraping-mapping"
+      description: "Mapping data from oxylabs scraping"
+      condition: "$.get('scraping-content') is not None"
+      inputs:
+        input-scraping-content: "$.get('scraping-content')"
+      outputs:
+        parsed-content: "$.get('parsed-content')"
+
+    - type: "document"
+      name: "update-web-scraping"
+      description: "Update the document."
+      condition: "$.get('scraping-content') is not None"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        web-scraping: |
+          {
+            'content': $.get('parsed-content'),
+            'execution': datetime.utcnow(),
+            'version_control': {
+              'processing': False,
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        url: "$.get('url')"
