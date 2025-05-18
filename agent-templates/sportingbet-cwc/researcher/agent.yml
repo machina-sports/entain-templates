@@ -1,0 +1,25 @@
+agent:
+  
+  # agent-researcher-competition-briefing
+  name: "agent-researcher-competition-briefing"
+  title: "Reearcher Competition Briefing"
+  description: "Agent responsible for generating researcher competition briefing."
+  context:
+    config-frequency: 1
+  workflows:
+    
+    # workflow-researcher-competition-briefing
+    - name: "workflow-researcher-competition-briefing"
+      description: "Reearcher Competition Briefing"
+      inputs:
+        season_id: "$.get('season_id', 'sr:season:126393') or None"
+      outputs:
+        workflow-researcher-competition-briefing: "$.get('workflow-status', False)"
+
+    # agent-researcher-competition-consumer
+    - name: "workflow-researcher-competition-consumer"
+      description: "Reearcher Competition Consumer"
+      inputs:
+        season_id: "$.get('season_id', 'sr:season:126393') or None"
+      outputs:
+        workflow-researcher-competition-consumer: "$.get('workflow-status', False)"

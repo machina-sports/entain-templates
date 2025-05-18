@@ -6,6 +6,7 @@ mappings:
     name: "mapping-soccer-competition-info"
     description: "Mapping data from competition info"
     outputs:
+      agenda-control: "$.get('item').get('agenda-control', {}) if $.get('item') else {}"
       competition_info: "$.get('item').get('competition_info', {}) if $.get('item') else {}"
       competition_title: "$.get('item').get('title', '') if $.get('item') else ''"
       competition_season: "$.get('item').get('competition_info', {}).get('season', {}) if $.get('item') else {}"

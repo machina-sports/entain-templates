@@ -19,8 +19,14 @@ datasets:
   - type: "workflow"
     path: "_folders.yml"
 
+  - type: "mappings"
+    path: "mappings/competition.yml"
+    
   - type: "agent"
     path: "_populate.yml"
+
+  - type: "agent"
+    path: "configuration/agent.yml"
 
   # # bwin
   # - type: "connector"
@@ -44,6 +50,12 @@ datasets:
   # - type: "workflow"
   #   path: "../../connectors/tallysight/load-leagues.yml"
 
+  # configuration
+  - type: "workflow"
+    path: "configuration/agenda.yml"
+  - type: "workflow"
+    path: "configuration/sites.yml"
+
   # editorial-agent
   - type: "agent"
     path: "editorial/agent.yml"
@@ -63,6 +75,16 @@ datasets:
     path: "reporter/scripts.yml"
   - type: "workflow"
     path: "reporter/workflow.yml"
+
+  # researcher-scripts
+  - type: "agent"
+    path: "researcher/agent.yml"
+  - type: "workflow"
+    path: "researcher/consumer.yml"
+  - type: "workflow"
+    path: "researcher/scripts.yml"
+  - type: "workflow"
+    path: "researcher/workflow.yml"
 
   # transcript-agent
   # - type: "agent"

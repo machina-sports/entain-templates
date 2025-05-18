@@ -1,0 +1,125 @@
+workflow:
+
+  # workflow-researcher-competition-consumer
+  name: "workflow-researcher-competition-consumer"
+  title: "Reearcher Competition Consumer"
+  description: "Workflow to consume soccer researcher competition."
+  context-variables:
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+  inputs:
+    season_id: "$.get('season_id')"
+  outputs:
+    workflow-status: |
+      (
+        $.(agenda-exists) is True
+      ) and 'executed' or 'skipped'
+  tasks:
+
+    # 1 load-competition-by-code
+    - type: "document"
+      name: "load-competition-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('season_id') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.season_id: "$.get('season_id')"
+        value.agenda-control.processing: "{'$ne': True}"
+      inputs:
+        name: "{'$in': ['season']}"
+      outputs:
+        competition_exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        competition_value: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+
+    # 2 load-existing-agendas
+    - type: "document"
+      name: "load-existing-agendas"
+      description: "Search for existing agendas in the database."
+      condition: "$.get('competition_exists') is True"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["value.agenda-control.updated", 1]
+      filters:
+        metadata.season_id: "$.get('season_id')"
+        value.agenda-control.processing: "{'$ne': True}"
+      inputs:
+        name: "'content-agenda'"
+      outputs:
+        agenda-doc-id: "$.get('documents', [])[0].get('_id') if $.get('documents') else None"
+        agenda-counter: "$.get('documents', [])[0].get('value', {}).get('agenda-control', {}).get('counter', 0) if $.get('documents') else 0"
+        agenda-exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        agenda-value: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+
+    # 3 load-pending-searches
+    - type: "document"
+      name: "load-pending-searches"
+      description: "Search for pending searches in the database."
+      condition: "$.get('agenda-exists') is True"
+      config:
+        action: "search"
+        search-limit: 100
+        search-vector: false
+        search-sorters: ["value.version_control.updated", 1]
+      filters:
+        metadata.briefing_code: "$.get('agenda-value', {}).get('briefing_code')"
+        metadata.briefing_group: "$.get('agenda-value', {}).get('briefing_group')"
+        metadata.season_id: "$.get('season_id')"
+        value.version_control.finished: "{'$ne': True}"
+      inputs:
+        name: "'web-search'"
+      outputs:
+        web-searching-pending: "len($.get('documents', [])) if $.get('documents') else 0"
+
+    # 4 load-pending-scrapings
+    - type: "document"
+      name: "load-pending-scrapings"
+      description: "Search for pending scrapings in the database."
+      condition: "$.get('agenda-exists') is True"
+      config:
+        action: "search"
+        search-limit: 100
+        search-vector: false
+        search-sorters: ["value.version_control.updated", 1]
+      filters:
+        metadata.briefing_code: "$.get('agenda-value', {}).get('briefing_code')"
+        metadata.briefing_group: "$.get('agenda-value', {}).get('briefing_group')"
+        metadata.season_id: "$.get('season_id')"
+        value.version_control.finished: "{'$ne': True}"
+      inputs:
+        name: "'web-scraping'"
+      outputs:
+        web-scraping-pending: "len($.get('documents', [])) if $.get('documents') else 0"
+
+    # 3 update-agenda
+    - type: "document"
+      name: "update-agenda"
+      description: "Update the agenda."
+      condition: "$.get('agenda-exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      filters:
+        document_id: "$.get('agenda-doc-id')"
+      documents:
+        content-agenda: |
+          {
+            **$.get('agenda-value', {}),
+            'agenda-control': {
+              **$.get('agenda-control', {}),
+              'counter': $.(agenda-counter) + 1,
+              'finished': $.(web-searching-pending) == 0 and $.(web-scraping-pending) == 0,
+              'processing': False,
+              'updated': datetime.utcnow(),
+              'web-searching-pending': $.(web-searching-pending),
+              'web-scraping-pending': $.(web-scraping-pending)
+            }
+          }

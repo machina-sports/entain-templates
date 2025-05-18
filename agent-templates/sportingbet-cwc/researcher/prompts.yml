@@ -1,12 +1,12 @@
 prompts:
 
-  # prompt-sentimental-competition-briefing
+  # prompt-researcher-competition-briefing
   - type: "prompt"
-    name: "prompt-sentimental-competition-briefing"
-    title: "Sentimental Competition Briefing"
-    description: "Generate a sentimental about the competition"
+    name: "prompt-researcher-competition-briefing"
+    title: "Reearcher Competition Briefing"
+    description: "Generate a researcher about the competition"
     schema:
-      title: "SoccerSentimentalCompetitionBriefing"
+      title: "SoccerReearcherCompetitionBriefing"
       description: "Briefing about the competition"
       type: "object"
       properties:

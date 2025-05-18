@@ -1,0 +1,54 @@
+workflow:
+  name: "populate-agenda"
+  title: "Populate Agenda"
+  description: "Populate Agenda"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+    - type: "document"
+      name: "bulk-content-agenda"
+      description: "Update the agenda."
+      config:
+        action: "bulk-update"
+        embed-vector: false
+        force-update: true
+      document_name: "'content-agenda'"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            {
+              "name": "content-agenda-research-news-on-the-world-cup",
+              "title": "Research News on the World Cup",
+              "description": "Research News on the World Cup",
+              "category": "Research",
+              "conditions": {
+                "start-date": {
+                  "operator": "gt",
+                  "value": "2025-05-01T00:00:00Z"
+                },
+                "end-date": {
+                  "operator": "lt",
+                  "value": "2025-06-01T00:00:00Z"
+                },
+                "recurrence": {
+                  "operator": "eq",
+                  "value": 480
+                },
+                "sources": {
+                  "operator": "in",
+                  "value": [
+                    "globo",
+                    "espn",
+                    "bolavip"
+                  ]
+                }
+              },
+              "metadata": {
+                "content_type": "content-agenda",
+                "content_name": "content-agenda-research-news-on-the-world-cup",
+                "content_group": "COMPETITION_RESEARCHER"
+              }
+            }
+          ]

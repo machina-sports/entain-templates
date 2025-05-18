@@ -1,0 +1,42 @@
+workflow:
+  name: "populate-web-sites"
+  title: "Populate Web Sites"
+  description: "Populate Web Sites"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "document"
+      name: "bulk-content-snippets"
+      description: "Update the snippets."
+      config:
+        action: "bulk-save"
+        embed-vector: false
+        force-update: true
+      document_name: "'web-site'"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            {
+              "title": "Gauchazh",
+              "url": "https://gauchazh.clicrbs.com.br/esportes",
+              "icon": "globe"
+            },
+            {
+              "title": "Esporte Interativo",
+              "url": "https://www.espn.com.br/futebol/time/12/flamengo",
+              "icon": "globe"
+            },
+            {
+              "title": "Bola Vip",
+              "url": "https://www.bolavip.com",
+              "icon": "globe"
+            },
+            {
+              "title": "Globoesporte",
+              "url": "https://www.globoesporte.com",
+              "icon": "globe"
+            }
+          ]

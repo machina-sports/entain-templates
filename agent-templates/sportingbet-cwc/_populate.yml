@@ -1,6 +1,6 @@
 agent:
   name: populate-content
-  title: "Populate Schedules"
+  title: "Populate Content"
   description: "Populate Content from Sync Workflows"
   workflows:
 
@@ -37,3 +37,31 @@ agent:
         season_id: "'sr:season:126393'"
       outputs:
         update-competition-status: "$.get('workflow-status', False)"
+
+    # populate researcher briefings
+    - name: "populate-researcher-briefings"
+      description: "populate-researcher-briefings"
+      condition: "$.get('setup-register') is not True"
+      outputs:
+        populate-researcher-briefings-status: "$.get('workflow-status', False)"
+
+    # populate reporter scripts
+    - name: "populate-reporter-scripts"
+      description: "populate-reporter-scripts"
+      condition: "$.get('setup-register') is not True"
+      outputs:
+        populate-reporter-scripts-status: "$.get('workflow-status', False)"
+
+    # populate editorial scripts
+    - name: "populate-editorial-scripts"
+      description: "populate-editorial-scripts"
+      condition: "$.get('setup-register') is not True"
+      outputs:
+        populate-editorial-scripts-status: "$.get('workflow-status', False)"
+
+    # populate folders
+    - name: "populate-folders"
+      description: "populate-folders"
+      condition: "$.get('setup-register') is not True"
+      outputs:
+        populate-folders-status: "$.get('workflow-status', False)"
