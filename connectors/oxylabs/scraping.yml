@@ -13,12 +13,12 @@ workflow:
       username: "$TEMP_CONTEXT_VARIABLE_OXYLABS_USERNAME"
       password: "$TEMP_CONTEXT_VARIABLE_OXYLABS_PASSWORD"
   inputs:
-    parser: "$.get('parser') == 'true'"
+    parse: "($.get('parse', 'true') == 'true') and True or False"
     render: "$.get('render')"
     source: "$.get('source', 'universal')"
     url: "$.get('url')"
   outputs:
-    result: "$.get('result')"
+    parsed-content: "$.get('parsed-content')"
     workflow-status: "'executed'"
   tasks:
 
@@ -32,7 +32,7 @@ workflow:
       inputs:
         body: |
           {
-            "parser": $.get('parser'),
+            "parse": $.get('parse'),
             "render": $.get('render'),
             "source": $.get('source'),
             "url": $.get('url'),
@@ -48,24 +48,3 @@ workflow:
         input-scraping-content: "$.get('scraping-content')"
       outputs:
         parsed-content: "$.get('parsed-content')"
-
-    - type: "document"
-      name: "update-web-scraping"
-      description: "Update the document."
-      condition: "$.get('scraping-content') is not None"
-      config:
-        action: "update"
-        embed-vector: false
-        force-update: true
-      documents:
-        web-scraping: |
-          {
-            'content': $.get('parsed-content'),
-            'execution': datetime.utcnow(),
-            'version_control': {
-              'processing': False,
-              'updated': datetime.utcnow()
-            }
-          }
-      metadata:
-        url: "$.get('url')"

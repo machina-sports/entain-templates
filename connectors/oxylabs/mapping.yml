@@ -16,4 +16,17 @@ mappings:
     name: "oxylabs-scraping-mapping"
     description: "Mapping data from oxylabs scraping"
     outputs:
-      parsed-content: "bs4($.get('input-scraping-content'), 'html.parser').get_text()"
+      parsed-content: |
+        [
+          text[i:i+100]
+          for text in [bs4($.get('input-scraping-content'), 'html.parser').get_text()]
+          for i in range(0, len(text), 100)
+        ]
+
+  - type: "mapping"
+    title: "Oxylabs Searching Mapping"
+    name: "oxylabs-searching-mapping"
+    description: "Mapping data from oxylabs searching"
+    outputs:
+      parsed-content: "$.get('input-searching-content', {}).get('results', {}).get('main', [])"
+      

@@ -51,11 +51,6 @@ workflow:
         items: "$.get('result', {}).get('results', [])[0].get('content')"
       outputs:
         transcript-content: "$.get('transcript-content')"
-        result_bulks: |
-          [
-            $.get('transcript-content')[i:i+100]
-            for i in range(0, len($.get('transcript-content')), 100)
-          ]
 
     - type: "prompt"
       name: "prompt-transcript-subject-analysis"
