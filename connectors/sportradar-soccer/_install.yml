@@ -44,8 +44,6 @@ datasets:
   - type: "mappings"
     path: "mappings/_mappings.yml"
   - type: "mappings"
-    path: "mappings/competition-info.yml"
-  - type: "mappings"
     path: "mappings/soccer-event-summary.yml"
   - type: "mappings"
     path: "mappings/soccer-last-match.yml"
