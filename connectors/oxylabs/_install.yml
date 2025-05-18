@@ -26,6 +26,9 @@ datasets:
     path: "web-scraping.yml"
 
   - type: "workflow"
+    path: "searching.yml"
+
+  - type: "workflow"
     path: "scraping.yml"
 
   - type: "workflow"
@@ -33,3 +36,16 @@ datasets:
 
   - type: "mappings"
     path: "mapping.yml"
+
+  # consumer
+  - type: "workflow"
+    path: "consumer/searching.yml"
+
+  - type: "workflow"
+    path: "consumer/scraping.yml"
+
+  - type: "workflow"
+    path: "consumer/update.yml"
+
+  - type: "agent"
+    path: "consumer/agent.yml"
