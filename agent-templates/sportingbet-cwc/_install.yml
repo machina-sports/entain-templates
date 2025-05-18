@@ -79,6 +79,8 @@ datasets:
   # researcher-scripts
   - type: "agent"
     path: "researcher/agent.yml"
+  - type: "prompts"
+    path: "researcher/prompts.yml"
   - type: "workflow"
     path: "researcher/consumer.yml"
   - type: "workflow"

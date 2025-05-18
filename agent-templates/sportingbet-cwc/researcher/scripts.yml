@@ -48,18 +48,60 @@ workflow:
               "indexes": [
                 "DAILY_WEB_RESEARCH",
               ],
+              "instruction": "Extract the latest news about CWC from the web page.",
               "metadata": {
                 "content_type": "content-script",
                 "content_name": "content-script-researcher-briefings",
                 "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
               },
               "web-search-queries": [
-                "site:gauchazh.clicrbs.com.br/esportes",
-                "site:https://www.espn.com.br/",
               ],
               "web-scraping-urls": [
                 "https://ge.globo.com/futebol/times/vasco/noticia/2025/05/17/souza-culpa-edmundo-por-rebaixamento-do-vasco-em-2008-terrivel-ser-humano.ghtml",
                 "https://ge.globo.com/futebol/selecao-brasileira/noticia/2025/05/17/crise-na-cbf-campeoes-mundiais-do-brasil-manifestam-indignacao-e-preocupacao.ghtml"
+              ]
+            },
+            {
+              "name": "content-script-researcher-cwc-history",
+              "title": "Researcher CWC History",
+              "description": "Researcher CWC History",
+              "category": "Research",
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_WIKIPEDIA_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the history of the CWC from the web page. Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC. Extract the referees of the CWC. Extract the history of the CWC from the web page.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-cwc-history",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://en.wikipedia.org/wiki/2025_FIFA_Club_World_Cup"
+              ]
+            },
+            {
+              "name": "content-script-researcher-goal-website",
+              "title": "Researcher Goal Website",
+              "description": "Researcher Goal Website",
+              "category": "Research",
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_GOAL_WEBSITE_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-goal-website",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://www.goal.com/en/news/club-world-cup-2025-how-qualification-works-list-qualified-teams/bltac42bd2227f80540",
+                "https://www.goal.com/en/news/club-world-cup-2025-prize-money/bltba4bcd395f2d7658",
+                "https://www.goal.com/en/lists/fifa-club-world-cup-2025-schedule-teams-tickets-format/bltf0f055146b3da38d",
+                "https://www.goal.com/en/news/why-are-liverpool-not-in-club-world-cup-2025/blt61ef51f42a7df847"
               ]
             }
           ]

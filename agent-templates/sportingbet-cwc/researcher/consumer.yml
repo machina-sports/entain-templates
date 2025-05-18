@@ -15,6 +15,8 @@ workflow:
     workflow-status: |
       (
         $.(agenda-exists) is True
+        and $.(web-research-pending) == 0
+        and $.(web-research-processed) > 0
       ) and 'executed' or 'skipped'
   tasks:
 
@@ -50,18 +52,23 @@ workflow:
       filters:
         metadata.season_id: "$.get('season_id')"
         value.agenda-control.processing: "{'$ne': True}"
+        value.agenda-control.finished: "{'$ne': True}"
       inputs:
         name: "'content-agenda'"
       outputs:
         agenda-doc-id: "$.get('documents', [])[0].get('_id') if $.get('documents') else None"
         agenda-counter: "$.get('documents', [])[0].get('value', {}).get('agenda-control', {}).get('counter', 0) if $.get('documents') else 0"
         agenda-exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        agenda-instruction: "$.get('documents')[0].get('value', {}).get('instruction', '') if $.get('documents') else None"
+        agenda-metadata: "$.get('documents')[0].get('metadata', {}) if $.get('documents') else None"
         agenda-value: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+        briefing-code: "$.get('documents')[0].get('metadata', {}).get('briefing_code') if $.get('documents') else None"
+        briefing-group: "$.get('documents')[0].get('metadata', {}).get('briefing_group') if $.get('documents') else None"
 
-    # 3 load-pending-searches
+    # 3 load-pending searches and scrapings
     - type: "document"
-      name: "load-pending-searches"
-      description: "Search for pending searches in the database."
+      name: "load-pending-searches-and-scrapings"
+      description: "Search for pending searches and scrapings in the database."
       condition: "$.get('agenda-exists') is True"
       config:
         action: "search"
@@ -69,19 +76,19 @@ workflow:
         search-vector: false
         search-sorters: ["value.version_control.updated", 1]
       filters:
-        metadata.briefing_code: "$.get('agenda-value', {}).get('briefing_code')"
-        metadata.briefing_group: "$.get('agenda-value', {}).get('briefing_group')"
+        metadata.briefing_code: "$.get('briefing-code')"
+        metadata.briefing_group: "$.get('briefing-group')"
         metadata.season_id: "$.get('season_id')"
         value.version_control.finished: "{'$ne': True}"
       inputs:
-        name: "'web-search'"
+        name: "{'$in': ['web-search', 'web-scraping']}"
       outputs:
-        web-searching-pending: "len($.get('documents', [])) if $.get('documents') else 0"
+        web-research-pending: "len($.get('documents', [])) if $.get('documents') else 0"
 
-    # 4 load-pending-scrapings
+    # 4 load-processed-scrapings
     - type: "document"
-      name: "load-pending-scrapings"
-      description: "Search for pending scrapings in the database."
+      name: "load-processed-scrapings"
+      description: "Search for processed scrapings in the database."
       condition: "$.get('agenda-exists') is True"
       config:
         action: "search"
@@ -89,16 +96,89 @@ workflow:
         search-vector: false
         search-sorters: ["value.version_control.updated", 1]
       filters:
-        metadata.briefing_code: "$.get('agenda-value', {}).get('briefing_code')"
-        metadata.briefing_group: "$.get('agenda-value', {}).get('briefing_group')"
+        metadata.briefing_code: "$.get('briefing-code')"
+        metadata.briefing_group: "$.get('briefing-group')"
         metadata.season_id: "$.get('season_id')"
-        value.version_control.finished: "{'$ne': True}"
+        value.version_control.finished: "{'$eq': True}"
       inputs:
-        name: "'web-scraping'"
+        name: "{'$in': ['web-scraping']}"
       outputs:
-        web-scraping-pending: "len($.get('documents', [])) if $.get('documents') else 0"
+        web-research-processed: "len($.get('documents', [])) if $.get('documents') else 0"
+        web-research-processed-bulk: |
+          [
+            {
+              **d.get('value', {}),
+              'metadata': d.get('metadata', {})
+            }
+            for d in $.get('documents', [])
+          ]
 
-    # 3 update-agenda
+    # 5 prompt analysis research
+    - type: "prompt"
+      name: "prompt-analysis-researcher-briefing"
+      description: "Generate a researcher about the competition"
+      condition: |
+        (
+          $.get('web-research-pending') == 0
+          and $.get('web-research-processed') > 0
+        )
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4.1"
+      foreach:
+        name: "analysis"
+        expr: "$"
+        value: "$.get('web-research-processed-bulk')"
+      inputs:
+        input-content: "$.get('analysis', {}).get('content', [])"
+        instruction: "$.get('agenda-instruction')"
+      outputs:
+        snippets-bulk: |
+          [
+            {
+              'text': c.get('content', ''),
+              'title': c.get('title', ''),
+              'subject': c.get('subject', ''),
+              'metadata': {
+                'briefing_code': '$.(briefing-code)',
+                'briefing_group': '$.(briefing-group)',
+                'season_id': '$.(season_id)',
+                'script_code': c.get('script_code'),
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    # 0 bulk-content-snippets
+    - type: "document"
+      name: "bulk-content-snippets"
+      condition: |
+        (
+          $.(competition_exists) is True
+          and $.(agenda-exists) is True
+          and len($.(snippets-bulk)) > 0
+        )
+      description: "Update the snippets."
+      config:
+        action: "bulk-save"
+        embed-vector: true
+        force-update: true
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      document_name: "'content-snippet'"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            *$.get('snippets-bulk', [])
+          ]
+
+    # 6 update-agenda
     - type: "document"
       name: "update-agenda"
       description: "Update the agenda."
@@ -113,13 +193,14 @@ workflow:
         content-agenda: |
           {
             **$.get('agenda-value', {}),
+            'content-snippets': $.(snippets-bulk),
             'agenda-control': {
               **$.get('agenda-control', {}),
               'counter': $.(agenda-counter) + 1,
-              'finished': $.(web-searching-pending) == 0 and $.(web-scraping-pending) == 0,
+              'finished': $.(web-research-pending) == 0 and $.(web-research-processed) > 0,
               'processing': False,
               'updated': datetime.utcnow(),
-              'web-searching-pending': $.(web-searching-pending),
-              'web-scraping-pending': $.(web-scraping-pending)
+              'web-research-pending': $.(web-research-pending),
+              'web-research-processed': $.(web-research-processed)
             }
           }

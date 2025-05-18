@@ -5,7 +5,7 @@ agent:
   title: "Reearcher Competition Briefing"
   description: "Agent responsible for generating researcher competition briefing."
   context:
-    config-frequency: 1
+    config-frequency: 0.2
   workflows:
     
     # workflow-researcher-competition-briefing

@@ -88,18 +88,10 @@ workflow:
         action: "search"
         search-limit: 100
         search-vector: false
+        search-sorters: ["value.agenda-control.updated", 1]
       inputs:
         name: "'content-agenda'"
       outputs:
-        # briefing-researcher-briefings: "$"
-        # briefing-researcher-briefings-bulk: |
-        #   [
-        #     {
-        #       **d.get('value', {}),
-        #       'metadata': d.get('metadata', {})
-        #     }
-        #     for d in $.get('documents', [])
-        #   ]
         documents_covered: |
           [
             d.get('metadata', {}).get('briefing_code')
@@ -118,12 +110,19 @@ workflow:
         action: "search"
         search-limit: 1
         search-vector: false
+        search-sorters: ["value.agenda-control.updated", 1]
       filters:
         metadata.content_group: "'COMPETITION_RESEARCHER_BRIEFINGS'"
       inputs:
         name: "'content-script'"
       outputs:
-        documents-resulted: "$"
+        content-script-agenda: "$.get('documents', [{}])[0].get('agenda-control', {}) if $.get('documents') else None"
+        content-script-counter: "$.get('documents', [{}])[0].get('agenda-control', {}).get('counter', 0) if $.get('documents') else 0"
+        content-script-doc-id: "$.get('documents', [{}])[0].get('_id', '') if $.get('documents') else ''"
+        content-script-exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        content-script-value: "$.get('documents', [{}])[0].get('value', {}) if $.get('documents') else None"
+        content-instructions: |
+          $.get('documents', [{}])[0].get('value', {}).get('instruction', '')
         next-topic-to-cover: |
           'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
             [
@@ -200,6 +199,7 @@ workflow:
                 'processing': False,
                 'updated': datetime.utcnow()
               },
+              'instruction': '$.(content-instructions)',
               'metadata': {
                 'briefing_code': '$.(next-topic-to-cover)',
                 'briefing_group': 'RESEARCH_GOOGLE_NEWS',
@@ -246,6 +246,30 @@ workflow:
         items: "$.get('parsed-items', [])"
       inputs:
         parsed-items: "$.get('web-scraping-urls-bulk')"
+
+    # 9 content-script-control-update 
+    - type: "document"
+      name: "content-script-control-update"
+      description: "Update the content script control."
+      condition: "$.get('content-script-exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      filters:
+        document_id: "$.get('content-script-doc-id')"
+      documents:
+        content-script: |
+          {
+            **$.get('content-script-value', {}),
+            'agenda-control': {
+              **$.get('content-script-agenda', {}),
+              'counter': $.get('content-script-counter', 0) + 1,
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        season_id: "$.get('season_id')"
 
     # 9 season-control-success
     - type: "document"
