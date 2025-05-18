@@ -9,6 +9,7 @@ workflow:
       enabled: true
   inputs:
     content: "$.get('content')"
+    content-links: "$.get('content-links')"
     document_id: "$.get('document_id')"
   outputs:
     workflow-status: |
@@ -29,38 +30,36 @@ workflow:
         document_id: "$.get('document_id')"
       outputs:
         content-exists: "len($.get('documents', [])) > 0"
+        content-metadata: "$.get('documents', [])[0].get('metadata', {}) if $.get('documents') else None"
         content-name: "$.get('documents', [])[0].get('name') if $.get('documents') else None"
         content-value: "$.get('documents', [])[0].get('value', {}) if $.get('documents') else None"
         version-control: "$.get('documents', [])[0].get('value', {}).get('version_control', {}) if $.get('documents') else None"
 
-    # 2 update web-search
+    # 2 create web-scraping links
     - type: "document"
-      name: "update-web-search"
-      description: "Update the web search."
+      name: "create-web-scraping-links"
+      description: "Create a web scraping links."
       condition: |
         (
           $.(content-exists) is True
           and '$.(content-name)' == 'web-search'
         )
       config:
-        action: "update"
+        action: "bulk-save"
         embed-vector: false
         force-update: true
-      filters:
-        document_id: "$.get('document_id')"
+      document_name: "'web-scraping'"
       documents:
-        web-search: |
-          {
-            **$.get('content-value', {}),
-            'content': $.get('content'),
-            'version_control': {
-              **$.get('version-control', {}),
-              'count': $.get('version-control', {}).get('count', 0) + 1,
-              'finished': True,
-              'processing': False,
-              'updated': datetime.utcnow()
+        items: "$.get('parsed-items', [])"
+      inputs:
+        parsed-items: |
+          [
+            {
+              **item,
+              'metadata': $.(content-metadata)
             }
-          }
+            for item in $.get('content-links', [])
+          ]
 
     # 3 update web-scraping
     - type: "document"
@@ -91,3 +90,31 @@ workflow:
             }
           }
           
+    # 4 update web-search
+    - type: "document"
+      name: "update-web-search"
+      description: "Update the web search."
+      condition: |
+        (
+          $.(content-exists) is True
+          and '$.(content-name)' == 'web-search'
+        )
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      filters:
+        document_id: "$.get('document_id')"
+      documents:
+        web-search: |
+          {
+            **$.get('content-value', {}),
+            'content': $.get('content'),
+            'version_control': {
+              **$.get('version-control', {}),
+              'count': $.get('version-control', {}).get('count', 0) + 1,
+              'finished': True,
+              'processing': False,
+              'updated': datetime.utcnow()
+            }
+          }

@@ -9,7 +9,7 @@ workflow:
       enabled: true
   outputs:
     document_id: "$.get('document_id')"
-    scraping-url: "$.get('web-scraping-url')"
+    web-scraping-url: "$.get('web-scraping-url')"
     workflow-status: |
       (
         $.(web-scraping-exists) is True

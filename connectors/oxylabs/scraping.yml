@@ -13,7 +13,7 @@ workflow:
       username: "$TEMP_CONTEXT_VARIABLE_OXYLABS_USERNAME"
       password: "$TEMP_CONTEXT_VARIABLE_OXYLABS_PASSWORD"
   inputs:
-    parse: "($.get('parse', 'true') == 'true') and True or False"
+    parse: "($.get('parse', 'false') == 'true') and True or False"
     render: "$.get('render')"
     source: "$.get('source', 'universal')"
     url: "$.get('url')"

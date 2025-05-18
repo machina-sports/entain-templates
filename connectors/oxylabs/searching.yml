@@ -18,6 +18,7 @@ workflow:
     source: "$.get('source', 'google_search')"
   outputs:
     parsed-content: "$.get('parsed-content')"
+    parsed-links: "$.get('parsed-links')"
     workflow-status: "'executed'"
   tasks:
 
@@ -61,3 +62,4 @@ workflow:
         input-searching-content: "$.get('searching-content')"
       outputs:
         parsed-content: "$.get('parsed-content')"
+        parsed-links: "$.get('parsed-links')"
