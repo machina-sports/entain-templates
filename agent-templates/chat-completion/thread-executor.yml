@@ -84,7 +84,7 @@ workflow:
         model: "text-embedding-3-small"
       inputs:
         name: "'content-snippet'"
-        search-limit: "'50'"
+        search-limit: "'10'"
         search-query: "$.get('question')"
       outputs:
         parsed_documents: |
@@ -151,17 +151,18 @@ workflow:
       description: "Thread Executor."
       condition: "$.get('document_id') is not None"
       connector:
-        name: "machina-ai-fast"
-        command: "invoke_prompt"
-        model: "llama-3.1-8b-instant"
+        # name: "machina-ai-fast"
+        # command: "invoke_prompt"
+        # model: "llama-3.1-8b-instant"
         # model: "deepseek-r1-distill-qwen-32b"
         # model: "llama-3.1-8b-instant"
         # model: "llama-3.3-70b-versatile"
         # model: "deepseek-r1-distill-llama-70b"
         # model: "deepseek-r1-distill-llama-70b-specdec"
-        # name: "machina-ai"
-        # command: "invoke_prompt"
-        # model: "gpt-4.1"
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4.1"
+        # model: "gpt-4o"
       inputs:
         documents: |
           [
