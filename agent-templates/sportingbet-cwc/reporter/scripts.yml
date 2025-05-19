@@ -1,0 +1,52 @@
+workflow:
+
+  # populate-reporter-scripts
+  name: "populate-reporter-scripts"
+  title: "Populate Reporter Scripts"
+  description: "Populate Reporter Scripts"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "document"
+      name: "install-reporter-scripts-briefing"
+      description: "Install reporter scripts."
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-script: |
+          {
+            "title": "Reporter Competition Briefing",
+            "description": "Reporter Competition Briefing",
+            "name": "content-script",
+            "indexes": [
+              "REPORTER_BOTAFOGO_EXPECTATIONS",
+              "REPORTER_FLAMENGO_EXPECTATIONS",
+              "REPORTER_FLUMINENSE_EXPECTATIONS",
+              "REPORTER_PALMEIRAS_EXPECTATIONS",
+              "REPORTER_FACTS_AND_FIGURES",
+            ],
+            "snippets": {
+              "REPORTER_BOTAFOGO_EXPECTATIONS": [
+                "CWC_HISTORY_BOTAFOGO_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_FLAMENGO_EXPECTATIONS": [
+                "CWC_HISTORY_FLAMENGO_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_FLUMINENSE_EXPECTATIONS": [
+                "CWC_HISTORY_FLUMINENSE_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_PALMEIRAS_EXPECTATIONS": [
+                "CWC_HISTORY_PALMEIRAS_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_FACTS_AND_FIGURES": [
+                "CWC_HISTORY_GOAL_WEBSITE_WEB_RESEARCH",
+                "CWC_HISTORY_FLAMENGO_EXPECTATIONS_WEB_RESEARCH",
+                "CWC_HISTORY_PALMEIRAS_EXPECTATIONS_WEB_RESEARCH",
+              ],
+            }
+          }
+      metadata:
+        group: "'COMPETITION_ARTICLES'"

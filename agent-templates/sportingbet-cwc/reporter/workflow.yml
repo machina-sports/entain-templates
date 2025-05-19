@@ -1,0 +1,310 @@
+workflow:
+
+  # workflow-reporter-competition-briefing
+  name: "workflow-reporter-competition-briefing"
+  title: "Reporter Competition Briefing"
+  description: "Workflow to produce soccer reporter competition briefing."
+  context-variables:
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+    sportradar-soccer:
+      sportradar_api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
+    stability:
+      api_key: "$TEMP_CONTEXT_VARIABLE_STABILITY_API_KEY"
+    storage:
+      api_key: "$TEMP_CONTEXT_VARIABLE_AZURE_BLOB_STRING"
+  inputs:
+    season_id: "$.get('season_id')"
+  outputs:
+    workflow-status: |
+      (
+        $.(competition_exists) is True
+      ) and 'executed' or 'skipped'
+  tasks:
+
+    # 1 load-competition-by-code
+    - type: "document"
+      name: "load-competition-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('season_id') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.season_id: "$.get('season_id')"
+      inputs:
+        name: "{'$in': ['season']}"
+      outputs:
+        competition_exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        competition_value: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+
+    # 2 mapping-soccer-competition-info
+    - type: "mapping"
+      name: "mapping-soccer-competition-info"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('competition_exists') is True"
+      inputs:
+        item: "$.get('competition_value', {})"
+      outputs:
+        competition_info: "$.get('competition_info')"
+        competition_title: "$.get('competition_title')"
+        competition_season: "$.get('competition_season')"
+        competition_stage: "$.get('competition_stage_regular')"
+        version_control: "$.get('version_control')"
+
+    # 3 version-control-update-schedule
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('competition_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        season: |
+          {
+            **$.get('competition_value', {}),
+            'version_control': {
+              **$.get('competition_value', {}).get('version_control', {}),
+              'processing': True,
+              'update_competition_articles_status': 'processing'
+            }
+          }
+      metadata:
+        season_id: "$.get('season_id')"
+
+    # 4 load-existing-articles
+    - type: "document"
+      name: "load-existing-articles"
+      description: "Search for existing articles in the database."
+      condition: "$.get('competition_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      config:
+        action: "search"
+        search-limit: 100
+        search-vector: false
+      inputs:
+        name: "'content-article'"
+      outputs:
+        briefing-articles: "$"
+        briefing-articles-bulk: |
+          [
+            {
+              **d.get('value', {}),
+              'metadata': d.get('metadata', {})
+            }
+            for d in $.get('documents', [])
+          ]
+        documents_covered: |
+          [
+            d.get('metadata', {}).get('script_code')
+            for d in $.get('documents', [])
+          ]
+    
+    ## generate commentaries from historical data
+
+    # 0 scripts-reporter-competition-briefing
+    - type: "document"
+      name: "scripts-reporter-competition-briefing"
+      description: "Search for reporting team scripts in the database."
+      condition: |
+        (
+          $.(competition_exists) is True
+        )
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+      filters:
+        metadata.group: "'COMPETITION_ARTICLES'"
+      inputs:
+        name: "'content-script'"
+      outputs:
+        briefing-next-topic-to-cover: |
+          'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
+            [
+              script
+              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
+              if script not in $.(documents_covered)
+            ][0] if [
+              script
+              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
+              if script not in $.(documents_covered)
+            ] else 'NONE_TOPIC_TO_COVER'
+          )
+        briefing-required-snippets: |
+          'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
+            [
+              $.get('documents', [{}])[0].get('value', {}).get('snippets', {}).get(script, [])
+              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
+              if script not in $.(documents_covered)
+            ][0] if [
+              script
+              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
+              if script not in $.(documents_covered)
+            ] else 'NONE_TOPIC_TO_COVER'
+          )
+
+    # 1
+    - type: "document"
+      name: "load-relevant-snippets"
+      description: "Search for relevant snippets in the database."
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+        )
+      config:
+        action: "search"
+        search-limit: 10
+        search-vector: false
+        search-sorters: ["value.updated", -1]
+      filters:
+        metadata.briefing_code: "{'$in': $.(briefing-required-snippets)}"
+      inputs:
+        name: "'content-snippet'"
+      outputs:
+        has-relevant-snippets: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        relevant-snippets: |
+          [
+            d.get('value', {})
+            for d in $.get('documents', [])
+          ]
+
+    # 1 prompt-reporter-competition-article
+    - type: "prompt"
+      name: "prompt-reporter-competition-article"
+      description: "prompt-reporter-competition-article"
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+          and $.(has-relevant-snippets) is True
+        )
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        doc_event_title: "$.get('competition_title')"
+        doc_competition_season: "$.get('competition_season')"
+        selected_script_code: "$.get('briefing-next-topic-to-cover')"
+        relevant_snippets: "$.get('relevant-snippets')"
+      outputs:
+        reporter-article-br-heading: "$.get('title')"  
+        reporter-article-br-subtitle: "$.get('subtitle')"
+        reporter-article-br-slug: "$.get('slug')"
+        reporter-article-br-section-title: "$.get('section_title')"
+        reporter-article-br-section-content-1: "$.get('section_content_1')"
+        reporter-article-br-section-content-2: "$.get('section_content_2')"
+        reporter-article-br-section-content-3: "$.get('section_content_3')"
+        reporter-article-br-image-briefing: "$.get('image_briefing')"
+
+    # 2 generate-image
+    - type: "connector"
+      name: "generate-article-image"
+      description: "Generate an image for an article."
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+          and $.(has-relevant-snippets) is True
+        )
+      connector:
+        name: "machina-ai"
+        command: "generate_image"
+      inputs:
+        image_id: "$.get('reporter-article-br-slug')"
+        instruction: "$.get('reporter-article-br-image-briefing')"
+        model: "'gpt-image-1'"
+      outputs:
+        final_filename: f"article-image-{$.get('final_filename')}"
+        full_filepath: "$.get('full_filepath')"
+
+    # 9 store image
+    - type: "connector"
+      name: "store-article-image"
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+          and $.(has-relevant-snippets) is True
+        )
+      connector:
+        name: "storage"
+        command: "store_image"
+      inputs:
+        final_filename: "$.get('final_filename')"
+        full_filepath: "$.get('full_filepath')"
+      outputs:
+        image_path: "$.get('data')"
+
+    ## save / update documents
+    
+    # 1 update-competition-article
+    - type: "document"
+      name: "update-competition-article"
+      description: "Update the document."
+      condition: |
+        (
+          $.get('competition_exists') is True
+          and $.get('briefing-next-topic-to-cover') != 'NONE_TOPIC_TO_COVER'
+          and $.(has-relevant-snippets) is True
+        )
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-article: |
+          {
+            'section_1_title': $.get('reporter-article-br-section-title'),
+            'section_1_content': $.get('reporter-article-br-section-content-1'),
+            'section_2_content': $.get('reporter-article-br-section-content-2'),
+            'section_3_content': $.get('reporter-article-br-section-content-3'),
+            'execution': datetime.utcnow(),
+            'slug': f"{$.get('reporter-article-br-slug')}-br",
+            'title': $.get('reporter-article-br-heading'),
+            'subtitle': $.get('reporter-article-br-subtitle'),
+            'image_path': $.get('image_path'),
+            'status': 'active'
+          }
+      metadata:
+        competition: "$.get('competition_id')"
+        competition_code: "$.get('competition_code')"
+        competition_title: "$.get('competition_title')"
+        content_type: "'commentaries-competition-briefing'"
+        script_code: "$.get('briefing-next-topic-to-cover')"
+        language: "'br'"
+
+    # 1 version-control-success
+    - type: "document"
+      name: "version-control-success"
+      description: "Update the events document version control."
+      condition: "$.get('competition_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        season: |
+          {
+            **$.get('competition_value', {}),
+            'version_control': {
+              **$.get('competition_value', {}).get('version_control', {}),
+              'processing': False,
+              'update_competition_articles_count': $.get('competition_value', {}).get('version_control', {}).get('update_competition_articles_count', 0) + 1,
+              'update_competition_articles_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        season_id: "$.get('season_id')"

@@ -1,0 +1,52 @@
+workflow:
+
+  # populate-editorial-scripts
+  name: "populate-editorial-scripts"
+  title: "Populate Editorial Scripts"
+  description: "Populate Editorial Scripts"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "document"
+      name: "install-editorial-scripts-briefing"
+      description: "Install editorial scripts."
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-script: |
+          {
+            "title": "Editorial Competition Briefing",
+            "description": "Editorial Competition Briefing",
+            "name": "content-script",
+            "indexes": [
+              "EDITORIAL_COMPETITION_HISTORY",
+              "EDITORIAL_COMPETITION_CHAMPIONS",
+              "EDITORIAL_COMPETITION_EDITION",
+            ]
+          }
+      metadata:
+        group: "'COMPETITION_BRIEFING'"
+
+    - type: "document"
+      name: "install-editorial-scripts-season"
+      description: "Install editorial scripts."
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-script: |
+          {
+            "title": "Editorial Competition Season",
+            "description": "Editorial Competition Season",
+            "name": "content-script",
+            "indexes": [
+              "EDITORIAL_COMPETITION_SEASON",
+              "EDITORIAL_COMPETITION_TEAMS"
+            ]
+          }
+      metadata:
+        group: "'COMPETITION_SEASON'"

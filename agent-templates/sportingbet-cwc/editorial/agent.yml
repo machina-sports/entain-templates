@@ -1,0 +1,19 @@
+agent:
+  
+  # agent-editorial-competition-briefing
+  name: "agent-editorial-competition-briefing"
+  title: "Editorial Competition Briefing"
+  description: "Agent responsible for generating soccer editorial competition briefing."
+  context:
+    config-frequency: 1
+  context-agent:
+    event_code: "$.get('event_code') or None"
+  workflows:
+    
+    # workflow-editorial-competition-briefing
+    - name: "workflow-editorial-competition-briefing"
+      description: "Editorial Competition Briefing"
+      inputs:
+        event_code: "$.get('event_code')"
+      outputs:
+        workflow-editorial-competition-briefing: "$.get('workflow-status', False)"

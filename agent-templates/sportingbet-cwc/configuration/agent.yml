@@ -1,0 +1,13 @@
+agent:
+  name: agent-configuration
+  title: "Agent Configuration"
+  description: "Agent Configuration"
+  workflows:
+
+    # workflow-researcher-competition-briefing
+    - name: "workflow-researcher-competition-briefing"
+      description: "workflow-researcher-competition-briefing"
+      inputs:
+        season_id: "'sr:season:126393'"
+      outputs:
+        workflow-status: "$.get('workflow-status', False)"

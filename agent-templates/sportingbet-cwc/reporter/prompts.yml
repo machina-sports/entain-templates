@@ -1,0 +1,179 @@
+prompts:
+
+  # prompt-reporter-competition-briefing
+  - type: "prompt"
+    name: "prompt-reporter-competition-article"
+    title: "Reporter Competition Article"
+    description: "Generate a article about the competition"
+    schema:
+      title: "PostBlogPreviaTitulo"
+      description: |
+        Este schema define a estrutura para gerar o blog post sobre a competição.
+
+        The topics cover the following subjects:
+        
+        REPORTER_COMPETITION_HISTORY
+        Mention key historical facts and milestones about the competition
+
+        REPORTER_COMPETITION_CHAMPIONS
+        List notable champions and their achievements in the competition
+
+        REPORTER_COMPETITION_EDITION
+        Provide details about the current edition of the competition
+
+        TONE AND VOICE GUIDELINES:
+        - Write in a casual, friendly tone like chatting with a knowledgeable friend
+        - Use simple, accessible language that anyone can understand
+        - Be direct and concise, avoid lengthy explanations
+        - Show expertise without being formal or academic
+        - Keep it conversational and engaging, like social media
+        - Explain complex topics in a simple, approachable way
+        - Stay helpful and welcoming to beginners
+        - Avoid overly technical terms or jargon
+        - Don't use promotional or sales-focused language
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: |
+            Gere o título em Português Brasileiro do blog post sobre a competição.
+            Use os dados disponíveis para substituir os campos entre colchetes, garantindo que o título contenha as informações essenciais do confronto.
+        subtitle:
+          type: "string"
+          description: |
+            Gere um subtítulo em Português Brasileiro para o blog post sobre a competição.
+
+            NÃO USAR - DADOS INDISPONÍVIS:
+            ❌ Sequência de vitórias/derrotas
+            ❌ Histórico de confrontos
+            ❌ Desempenho recente das equipes
+            ❌ Estatísticas de jogadores
+            ❌ Informações de lesões
+            ❌ Campanhas na temporada
+            
+            PROIBIDO NO TEXTO:
+            ❌ Perguntas ("Será que...?")
+            ❌ "Busca", "Tenta", "Quer"
+            ❌ "Pode", "Deve", "Deve ser"
+            ❌ Especulações sobre forma/momento
+        slug:
+          type: "string"
+          description: "Slug da matéria"
+        section_title:
+          type: "string"
+          description: "Título da seção"
+        section_content_1:
+          type: "string"
+          description: "Conteúdo da seção 1, introdução ao tema"
+        section_content_2:
+          type: "string"
+          description: "Conteúdo da seção 2, desenvolvimento do tema"
+        section_content_3:  
+          type: "string"
+          description: "Conteúdo da seção 3, conclusão"
+        image_briefing:
+          type: "string"
+          description: "Briefing para a criação de uma imagem sobre o tema. Não use logos e patrocinadores. Não escreva o nome do time, nem palavras."
+      required: [
+        "title",
+        "subtitle",
+        "slug",
+        "section_title",
+        "section_content_1",
+        "section_content_2",
+        "section_content_3",
+        "image_briefing"
+      ]
+
+  # prompt-reporter-competition-trendings
+  - type: "prompt"
+    name: "prompt-reporter-competition-trendings"
+    title: "Reporter Competition Trendings"
+    description: "Generate a article about the competition"
+    schema:
+      title: "PostBlogPreviaTitulo"
+      description: |
+        Este schema define a estrutura para gerar o blog post sobre a competição.
+
+        The topics cover the following subjects:
+        
+        REPORTER_COMPETITION_HISTORY
+        Mention key historical facts and milestones about the competition
+
+        REPORTER_COMPETITION_CHAMPIONS
+        List notable champions and their achievements in the competition
+
+        REPORTER_COMPETITION_EDITION
+        Provide details about the current edition of the competition
+
+        TONE AND VOICE GUIDELINES:
+        - Write in a casual, friendly tone like chatting with a knowledgeable friend
+        - Use simple, accessible language that anyone can understand
+        - Be direct and concise, avoid lengthy explanations
+        - Show expertise without being formal or academic
+        - Keep it conversational and engaging, like social media
+        - Explain complex topics in a simple, approachable way
+        - Stay helpful and welcoming to beginners
+        - Avoid overly technical terms or jargon
+        - Don't use promotional or sales-focused language
+      type: "object"
+      properties:
+        title:
+          type: "string"
+          description: |
+            Gere o título em Português Brasileiro do blog post sobre a competição.
+            Use os dados disponíveis para substituir os campos entre colchetes, garantindo que o título contenha as informações essenciais do confronto.
+        subtitle:
+          type: "string"
+          description: |
+            Gere um subtítulo em Português Brasileiro para o blog post sobre a competição.
+
+            NÃO USAR - DADOS INDISPONÍVIS:
+            ❌ Sequência de vitórias/derrotas
+            ❌ Histórico de confrontos
+            ❌ Desempenho recente das equipes
+            ❌ Estatísticas de jogadores
+            ❌ Informações de lesões
+            ❌ Campanhas na temporada
+            
+            PROIBIDO NO TEXTO:
+            ❌ Perguntas ("Será que...?")
+            ❌ "Busca", "Tenta", "Quer"
+            ❌ "Pode", "Deve", "Deve ser"
+            ❌ Especulações sobre forma/momento
+        slug:
+          type: "string"
+          description: "Slug da matéria"
+        section_title:
+          type: "string"
+          description: "Título da seção"
+        section_content_1:
+          type: "string"
+          description: "Conteúdo da seção 1, introdução ao tema"
+        section_content_2:
+          type: "string"
+          description: "Conteúdo da seção 2, desenvolvimento do tema"
+        section_content_3:  
+          type: "string"
+          description: "Conteúdo da seção 3, conclusão"
+        image_briefing:
+          type: "string"
+          description: "Briefing para a criação de uma imagem sobre o tema. Não use logos e patrocinadores. Não escreva o nome do time, nem palavras."
+        related_questions:
+          type: "array"
+          description: "Perguntas relacionadas ao tema"
+          minItems: 5
+          items:
+            type: "string"
+            description: "Perguntas relacionadas ao tema"
+      required: [
+        "title",
+        "subtitle",
+        "slug",
+        "section_title",
+        "section_content_1",
+        "section_content_2",
+        "section_content_3",
+        "image_briefing",
+        "related_questions"
+      ]

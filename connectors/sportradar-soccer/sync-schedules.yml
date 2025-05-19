@@ -1,6 +1,6 @@
 workflow:
   name: "sportradar-soccer-sync-schedules"
-  title: "Soccer - Sync Schedules"
+  title: "Soccer - Schedules"
   description: "Workflow to synchronize a season schedules from SportRadar API to Machina."
   context-variables:
     sportradar-soccer:
@@ -82,7 +82,7 @@ workflow:
                 'updated': datetime.utcnow()
               },
               'start_time': datetime.fromisoformat(c.get('sport_event', {}).get('start_time', '')),
-              'title': f"{c.get('sport_event', {}).get('sport_event_context', {}).get('category', {}).get('name', '')} {c.get('sport_event', {}).get('sport_event_context', {}).get('season', {}).get('name', '')}: {c.get('sport_event', {}).get('sport_event_context', {}).get('round', {}).get('number', '')} - {c.get('sport_event', {}).get('competitors', [{}])[0].get('name', '')} v {c.get('sport_event', {}).get('competitors', [{}])[1].get('name', '')}",
+              'title': f"{c.get('sport_event', {}).get('competitors', [{}])[0].get('name', '')} v {c.get('sport_event', {}).get('competitors', [{}])[1].get('name', '')}",
               'selected': False
             }
             for c in $.get('schedules')
@@ -127,7 +127,7 @@ workflow:
         name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
-      document_name: "soccer-game"
+      document_name: "'soccer-game'"
       documents:
         items: "$.get('schedules_parsed')"
       inputs:

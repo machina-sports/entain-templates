@@ -322,7 +322,7 @@ workflow:
         name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
-      document_name: "content-snippet"
+      document_name: "'content-snippet'"
       documents:
         items: "$.get('parsed-items')"
       inputs:

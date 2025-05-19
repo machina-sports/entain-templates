@@ -1,0 +1,160 @@
+workflow:
+  name: "populate-researcher-briefings"
+  title: "Populate Researcher Briefings"
+  description: "Populate Researcher Briefings"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+    - type: "document"
+      name: "bulk-researcher-briefings"
+      description: "Update the researcher briefings."
+      config:
+        action: "bulk-update"
+        embed-vector: false
+        force-update: true
+      document_name: "'content-script'"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            {
+              "name": "content-script-researcher-cwc-history",
+              "title": "Researcher CWC History",
+              "description": "Researcher CWC History",
+              "category": "Research",
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_WIKIPEDIA_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the history of the CWC from the web page. Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC. Extract the referees of the CWC. Extract the history of the CWC from the web page.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-cwc-history",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://en.wikipedia.org/wiki/2025_FIFA_Club_World_Cup"
+              ],
+              "web-search-queries": []
+            },
+            {
+              "name": "content-script-researcher-goal-website",
+              "title": "Researcher Goal Website",
+              "description": "Researcher Goal Website",
+              "category": "Research",
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_GOAL_WEBSITE_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-goal-website",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://www.goal.com/en/news/club-world-cup-2025-how-qualification-works-list-qualified-teams/bltac42bd2227f80540",
+                "https://www.goal.com/en/news/club-world-cup-2025-prize-money/bltba4bcd395f2d7658",
+                "https://www.goal.com/en/lists/fifa-club-world-cup-2025-schedule-teams-tickets-format/bltf0f055146b3da38d",
+                "https://www.goal.com/en/news/why-are-liverpool-not-in-club-world-cup-2025/blt61ef51f42a7df847"
+              ],
+              "web-search-queries": []
+            },
+            {
+              "name": "content-script-researcher-palmeiras-expectations",
+              "title": "Researcher Palmeiras Expectations",
+              "description": "Researcher Palmeiras Expectations",
+              "category": "Research",
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_PALMEIRAS_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the history of the Palmeiras from the web page. Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-palmeiras-expectations",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://www.espn.com.br/futebol/palmeiras/artigo/_/id/15179664/palmeiras-zera-dm-vesperas-mundial-de-clubes-avanca-estrategia-para-evitar-fantasmas",
+                "https://www.flashscore.com.br/noticias/palmeiras-no-mundial-de-clubes-fifa-todas-as-informacoes/Gn907L8s/",
+                "https://www.espn.com/soccer/story/_/id/42912426/chelsea-bound-estevao-ready-face-biggest-idol-lionel-messi"
+              ]
+            },
+            { 
+              "name": "content-script-researcher-flamengo-expectations",
+              "title": "Researcher Flamengo Expectations",
+              "description": "Researcher Flamengo Expectations",
+              "category": "Research",
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_FLAMENGO_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the history of the Flamengo from the web page. Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-flamengo-expectations",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://www.tribalfootball.com/article/soccer-fifa-club-world-cup-flamengo-intensify-jorginho-talks-with-cwc-on-radar-fca75afb-f922-42ab-9761-a6e4e585869f",
+                "https://www.terra.com.br/esportes/botafogo/flamengo-fluminense-e-palmeiras-sao-cabecas-de-chave-do-super-mundial-confira-potes,b16d936d245bc5b620a8f765a5de24736uk6ej0b.html",
+                "https://weaintgotnohistory.sbnation.com/2024/12/6/24313490/2025-fifa-club-world-cup-chelsea-drawn-into-group-d-alongside-flamengo-esperance-tunis-and-club-leon"
+              ],
+              "web-search-queries": []
+            },
+            {
+              "name": "content-script-researcher-fluminense-expectations",
+              "title": "Researcher Fluminense Expectations",
+              "description": "Researcher Fluminense Expectations",
+              "category": "Research",
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_FLUMINENSE_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the history of the Fluminense from the web page. Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-fluminense-expectations",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://ge.globo.com/futebol/times/fluminense/noticia/2025/05/16/a-um-mes-da-copa-do-mundo-de-clubes-fluminense-tem-dm-cheio-e-tenta-recuperar-pecas-importantes.ghtml",
+                "https://www.gaveanews.com/index.php/2025/05/16/fluminense-enfrenta-grave-problema-a-um-mes-da-copa-do-mundo-de-clubes/",
+                "https://www.vamofutebol.com/fluminense-se-alia-a-botafogo-e-palmeiras-para-evitar-prejuizo-milionario-no-mundial-de-clubes/",
+                "https://ge.globo.com/futebol/times/fluminense/noticia/2025/05/17/fluminense-tera-pontos-de-encontro-em-nova-york-miami-e-festa-em-barco-durante-copa-de-clubes.ghtml",
+                "https://www.opovo.com.br/agencia/jogada10/2025/05/16/atletas-do-fluminense-vao-a-consulado-tirar-visto-para-a-disputa-do-mundial.html",
+                "https://br.bolavip.com/fluminense/jhon-arias-celebra-entrosamento-com-cano-e-projeta-mundial-de-clubes",
+                "https://odia.ig.com.br/esporte/fluminense/2025/05/7056751-fluminense-acredita-em-retorno-de-canobbio-ate-o-mundial-de-clubes.html",
+              ]
+            },
+            {
+              "name": "content-script-researcher-botafogo-expectations",
+              "title": "Researcher Botafogo Expectations",
+              "description": "Researcher Botafogo Expectations",
+              "category": "Research", 
+              "conditions": {
+              },
+              "indexes": [
+                "CWC_HISTORY_BOTAFOGO_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "instruction": "Extract the history of the Botafogo from the web page. Extract the stadiums, dates, and teams that participated in the CWC. Extract the teams that won the CWC. Extract the teams that will play in the next CWC.",
+              "metadata": {
+                "content_type": "content-script",
+                "content_name": "content-script-researcher-botafogo-expectations",
+                "content_group": "COMPETITION_RESEARCHER_BRIEFINGS"
+              },
+              "web-scraping-urls": [
+                "https://www.fogaonet.com/noticias-do-botafogo/mundo-botafogo-clube-inicia-serie-de-lancamentos-para-conectar-a-torcida-ao-super-mundial-de-clubes/#google_vignette",
+                "https://www.otempo.com.br/sports/mundial-de-clubes/2025/5/17/conheca-o-lumen-field-casa-do-seattle-sounders-e-local-da-estreia-do-botafogo-no-mundial",
+                "https://www.itatiaia.com.br/esportes/futebol/botafogo/2025/05/15/reforco-do-botafogo-para-o-mundial-de-clubes-inicia-mudanca-para-o-rio",
+                "https://www.90min.com/pt-br/planos-botafogo-janela-transferencias-mundial-de-clubes",
+              ]
+            }
+          ]

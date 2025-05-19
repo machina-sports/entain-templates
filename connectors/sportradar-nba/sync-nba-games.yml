@@ -98,7 +98,7 @@ workflow:
         action: "bulk-update"
         embed-vector: false
         force-update: true
-      document_name: "nba-game"
+      document_name: "'nba-game'"
       documents:
         items: "$.get('games_parsed')"
       inputs:

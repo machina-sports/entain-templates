@@ -77,7 +77,7 @@ workflow:
         name: "machina-ai"
         command: "invoke_embedding"
         model: "text-embedding-3-small"
-      document_name: "game-fixture"
+      document_name: "'game-fixture'"
       documents:
         items: "$.get('parsedItems')"
       inputs:

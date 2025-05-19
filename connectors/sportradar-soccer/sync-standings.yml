@@ -1,8 +1,10 @@
 workflow:
   name: "sportradar-soccer-sync-standings"
-  title: "Soccer - Sync Standings"
+  title: "Soccer - Standings"
   description: "Workflow to synchronize a season standings from SportRadar API to Machina."
   context-variables:
+    debugger:
+      enabled: true
     sportradar-soccer:
       api_key: "$TEMP_CONTEXT_VARIABLE_SPORTRADAR_SOCCER_V4_API_KEY"
   inputs:

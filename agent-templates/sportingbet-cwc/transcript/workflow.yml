@@ -1,0 +1,143 @@
+workflow:
+
+  # workflow-transcript-analysis
+  name: "workflow-transcript-analysis"
+  title: "Transcript Analysis"
+  description: "Workflow to produce soccer transcript analysis."
+  context-variables:
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+  inputs:
+    url: "$.get('url')"
+    video-code: "$.get('video-code')"
+  outputs:
+    workflow-status: ($.(video-exists) is True) and 'executed' or 'skipped'
+  tasks:
+
+    # 1 load-video-by-code
+    - type: "document"
+      name: "load-video-by-code"
+      description: "Search video (oxylabs) by code."
+      condition: "$.get('video-code') is not None or $.get('url') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.video-code: "$.get('video-code')"
+        metadata.url: "$.get('url')"
+      inputs:
+        name: "{'$in': ['web-scraping']}"
+      outputs:
+        video-exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        video-value: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+
+    # 3 version-control-update-schedule
+    - type: "document"
+      name: "version-control-update-schedule"
+      description: "Update the events document version control."
+      condition: "$.get('video-exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        video-tranescript: |
+          {
+            **$.get('video-value', {}),
+            'version_control': {
+              **$.get('video-value', {}).get('version_control', {}),
+              'processing': True,
+              'update_transcript_analysis_status': 'processing'
+            }
+          }
+      metadata:
+        video-code: "$.get('video-code')"
+        url: "$.get('url')"
+
+    # 1 prompt-transcript-analysis
+    - type: "prompt"
+      name: "prompt-transcript-analysis"
+      description: "prompt-transcript-analysis"
+      condition: |
+        (
+          $.(video-exists) is True
+        )
+      connector:
+        name: "machina-ai"
+        command: "invoke_prompt"
+        model: "gpt-4o"
+      inputs:
+        doc-video-transcript: $.get('video-value', {}).get('content', [])
+      outputs:
+        doc-video-analysis: "$"
+        doc-video-analysis-bulk: |
+          [
+            {
+              'subject': c.get('title', ''),
+              'text': c.get('content', ''),
+              'title': f"{c.get('title', '')}",
+              'metadata': {
+                'content_type': 'transcript-analysis',
+                'video_code': '$.(video-code)',
+                'script_code': c.get('script_code'),
+                'language': 'en'
+              }
+            }
+            for c in $.get('snippets', [])
+          ]
+
+    ## save / update documents
+    
+    # 0 bulk-transcript-analysis
+    - type: "document"
+      name: "bulk-transcript-analysis"
+      condition: |
+        (
+          $.(video-exists) is True
+          and len($.(doc-video-analysis-bulk)) > 0
+        )
+      description: "Update the snippets."
+      config:
+        action: "bulk-save"
+        embed-vector: true
+        force-update: true
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      document_name: "'content-snippet'"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            *$.get('doc-video-analysis-bulk', [])
+          ]
+
+    # 1 version-control-success
+    - type: "document"
+      name: "version-control-success"
+      description: "Update the events document version control."
+      condition: "$.get('video-exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        video-transcript: |
+          {
+            **$.get('video-value', {}),
+            'version_control': {
+              **$.get('video-value', {}).get('version_control', {}),
+              'processing': False,
+              'update_transcript_analysis_count': $.get('video-value', {}).get('version_control', {}).get('update_transcript_analysis_count', 0) + 1,
+              'update_transcript_analysis_status': 'processed',
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        video-code: "$.get('video-code')"

@@ -4,6 +4,7 @@ agent:
   description: "Scheduler responsible for thread executor."
   context:
     config-frequency: 0.03
+    # config-frequency: 1
   workflows:
 
     # Workflow Thread Executor

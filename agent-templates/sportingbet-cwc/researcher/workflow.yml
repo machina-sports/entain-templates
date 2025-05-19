@@ -1,0 +1,295 @@
+workflow:
+
+  # workflow-researcher-competition-briefing
+  name: "workflow-researcher-competition-briefing"
+  title: "Reearcher Competition Briefing"
+  description: "Workflow to produce soccer researcher competition briefing."
+  context-variables:
+    debugger:
+      enabled: true
+    machina-ai:
+      api_key: "$TEMP_CONTEXT_VARIABLE_SDK_OPENAI_API_KEY"
+  inputs:
+    season_id: "$.get('season_id')"
+  outputs:
+    workflow-status: |
+      (
+        $.(competition_exists) is True
+        and '$.(next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+      ) and 'executed' or 'skipped'
+  tasks:
+
+    # 1 load-competition-by-code
+    - type: "document"
+      name: "load-competition-by-code"
+      description: "Search event (sportradar) by code."
+      condition: "$.get('season_id') is not None"
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["start_time", 1]
+      filters:
+        metadata.season_id: "$.get('season_id')"
+        # value.agenda-control.processing: "{'$ne': True}"
+      inputs:
+        name: "{'$in': ['season']}"
+      outputs:
+        competition_exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        competition_value: "$.get('documents')[0].get('value', {}) if $.get('documents') else None"
+
+    # 2 mapping-soccer-competition-info
+    - type: "mapping"
+      name: "mapping-soccer-competition-info"
+      description: "Transform the sportradar soccer data"
+      condition: "$.get('competition_exists') is True"
+      inputs:
+        item: "$.get('competition_value', {})"
+      outputs:
+        agenda-control: "$.get('agenda-control')"
+        competition_info: "$.get('competition_info')"
+        competition_title: "$.get('competition_title')"
+        competition_season: "$.get('competition_season')"
+        competition_stage: "$.get('competition_stage_regular')"
+        version_control: "$.get('version_control')"
+
+    # 3 season-control-update-schedule
+    - type: "document"
+      name: "season-control-update-schedule"
+      description: "Update the season control."
+      condition: "$.get('competition_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        season: |
+          {
+            **$.get('competition_value', {}),
+            'agenda-control': {
+              **$.get('agenda-control', {}),
+              'processing': True,
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        season_id: "$.get('season_id')"
+
+    # 4 load-existing-researcher-briefings
+    - type: "document"
+      name: "load-existing-researcher-briefings"
+      description: "Search for existing researcher briefings in the database."
+      condition: "$.get('competition_exists') is True"
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      config:
+        action: "search"
+        search-limit: 100
+        search-vector: false
+        search-sorters: ["value.agenda-control.updated", 1]
+      inputs:
+        name: "'content-agenda'"
+      outputs:
+        documents_covered: |
+          [
+            d.get('metadata', {}).get('briefing_code')
+            for d in $.get('documents', [])
+          ]
+
+    # 5 load-content-scripts
+    - type: "document"
+      name: "load-content-scripts"
+      description: "Search for researcher team scripts in the database."
+      condition: |
+        (
+          $.(competition_exists) is True
+        )
+      config:
+        action: "search"
+        search-limit: 1
+        search-vector: false
+        search-sorters: ["value.agenda-control.updated", 1]
+      filters:
+        metadata.content_group: "'COMPETITION_RESEARCHER_BRIEFINGS'"
+      inputs:
+        name: "'content-script'"
+      outputs:
+        content-script-agenda: "$.get('documents', [{}])[0].get('agenda-control', {}) if $.get('documents') else None"
+        content-script-counter: "$.get('documents', [{}])[0].get('agenda-control', {}).get('counter', 0) if $.get('documents') else 0"
+        content-script-doc-id: "$.get('documents', [{}])[0].get('_id', '') if $.get('documents') else ''"
+        content-script-exists: "len($.get('documents', [])) > 0 if $.get('documents') else False"
+        content-script-value: "$.get('documents', [{}])[0].get('value', {}) if $.get('documents') else None"
+        content-instructions: |
+          $.get('documents', [{}])[0].get('value', {}).get('instruction', '')
+        next-topic-to-cover: |
+          'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
+            [
+              script
+              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
+              if script not in $.(documents_covered)
+            ][0] if [
+              script
+              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
+              if script not in $.(documents_covered)
+            ] else 'NONE_TOPIC_TO_COVER'
+          )
+        web-scraping-urls: |
+          $.get('documents', [{}])[0].get('value', {}).get('web-scraping-urls', [])
+        web-scraping-urls-bulk: |
+          [
+            {
+              'metadata': {
+                'briefing_code': '$.(next-topic-to-cover)',
+                'briefing_group': 'RESEARCH_GOOGLE_NEWS',
+                'season_id': '$.(season_id)'
+              },
+              'version_control': {
+                'finished': False,
+                'processing': False,
+                'updated': datetime.utcnow()
+              },
+              'web-scraping-url': url,
+            }
+            for url in $.get('documents', [{}])[0].get('value', {}).get('web-scraping-urls', [])
+          ]
+        web-search-queries: |
+          $.get('documents', [{}])[0].get('value', {}).get('web-search-queries', [])
+        web-search-queries-bulk: |
+          [
+            {
+              'metadata': {
+                'briefing_code': '$.(next-topic-to-cover)',
+                'briefing_group': 'RESEARCH_GOOGLE_NEWS',
+                'season_id': '$.(season_id)'
+              },
+              'version_control': {
+                'finished': False,
+                'processing': False,
+                'updated': datetime.utcnow()
+              },
+              'web-search-query': query,
+            }
+            for query in $.get('documents', [{}])[0].get('value', {}).get('web-search-queries', [])
+          ]
+    
+    # 6 create new agenda
+    - type: "document"
+      name: "create-new-agenda"
+      description: "Create a new agenda."
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+        )
+      config:
+        action: "bulk-save"
+        embed-vector: false
+        force-update: true
+      document_name: "'content-agenda'"
+      documents:
+        items: "$.get('parsed-items')"
+      inputs:
+        parsed-items: |
+          [
+            {
+              'agenda-control': {
+                'counter': 0,
+                'processing': False,
+                'updated': datetime.utcnow()
+              },
+              'instruction': '$.(content-instructions)',
+              'metadata': {
+                'briefing_code': '$.(next-topic-to-cover)',
+                'briefing_group': 'RESEARCH_GOOGLE_NEWS',
+                'season_id': '$.(season_id)'
+              },
+              'status': 'active'
+            }
+          ]
+
+    # 7 create new search request
+    - type: "document"
+      name: "create-search-request"
+      description: "Create a web search request."
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+        )
+      config:
+        action: "bulk-save"
+        embed-vector: false
+        force-update: true
+      document_name: "'web-search'"
+      documents:
+        items: "$.get('parsed-items', [])"
+      inputs:
+        parsed-items: "$.get('web-search-queries-bulk')"
+
+    # 8 create web-scraping url
+    - type: "document"
+      name: "create-web-scraping-url"
+      description: "Create a web scraping url."
+      condition: |
+        (
+          $.(competition_exists) is True
+          and '$.(next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
+        )
+      config:
+        action: "bulk-save"
+        embed-vector: false
+        force-update: true
+      document_name: "'web-scraping'"
+      documents:
+        items: "$.get('parsed-items', [])"
+      inputs:
+        parsed-items: "$.get('web-scraping-urls-bulk')"
+
+    # 9 content-script-control-update 
+    - type: "document"
+      name: "content-script-control-update"
+      description: "Update the content script control."
+      condition: "$.get('content-script-exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      filters:
+        document_id: "$.get('content-script-doc-id')"
+      documents:
+        content-script: |
+          {
+            **$.get('content-script-value', {}),
+            'agenda-control': {
+              **$.get('content-script-agenda', {}),
+              'counter': $.get('content-script-counter', 0) + 1,
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        season_id: "$.get('season_id')"
+
+    # 9 season-control-success
+    - type: "document"
+      name: "season-control-success"
+      description: "Update the season control."
+      condition: "$.get('competition_exists') is True"
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        season: |
+          {
+            **$.get('competition_value', {}),
+            'agenda-control': {
+              **$.get('agenda-control', {}),
+              'counter': $.get('agenda-control', {}).get('counter', 0) + 1,
+              'processing': False,
+              'updated': datetime.utcnow()
+            }
+          }
+      metadata:
+        season_id: "$.get('season_id')"

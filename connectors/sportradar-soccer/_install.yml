@@ -37,11 +37,33 @@ setup:
   integrations:
     - sportradar
   status: available
-  value: agent-templates/sportradar-soccer
+  value: connectors/sportradar-soccer
   version: 4.0.0
 
 datasets:
+  - type: "mappings"
+    path: "mappings/_mappings.yml"
+  - type: "mappings"
+    path: "mappings/soccer-event-summary.yml"
+  - type: "mappings"
+    path: "mappings/soccer-last-match.yml"
+  - type: "mappings"
+    path: "mappings/soccer-version-control.yml"
   - type: "connector"
     path: "sportradar-soccer.yml"
-
-
+  - type: "workflow"
+    path: "sync-competitions.yml"
+  - type: "workflow"
+    path: "sync-competitors.yml"
+  - type: "workflow"
+    path: "sync-schedules.yml"
+  - type: "workflow"
+    path: "sync-seasons.yml"
+  - type: "workflow"
+    path: "update-competition.yml"
+  - type: "workflow"
+    path: "update-live.yml"
+  - type: "workflow"
+    path: "update-postlive.yml"
+  - type: "workflow"
+    path: "update-prelive.yml"

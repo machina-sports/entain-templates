@@ -1,0 +1,29 @@
+workflow:
+
+  # populate-transcript-scripts
+  name: "populate-transcript-scripts"
+  title: "Populate Transcript Scripts"
+  description: "Populate Transcript Scripts"
+  outputs:
+    workflow-status: "'executed'"
+  tasks:
+
+    - type: "document"
+      name: "install-transcript-scripts-briefing"
+      description: "Install reporter scripts."
+      config:
+        action: "update"
+        embed-vector: false
+        force-update: true
+      documents:
+        content-script: |
+          {
+            "title": "Transcript Video",
+            "description": "Transcript Video",
+            "name": "content-script",
+            "indexes": [
+              "TRANSCRIPT_VIDEO",
+            ]
+          }
+      metadata:
+        group: "'COMPETITION_TRANSCRIPT'"

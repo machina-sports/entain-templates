@@ -1,0 +1,16 @@
+agent:
+  
+  # agent-reporter-competition-briefing
+  name: "agent-reporter-competition-briefing"
+  title: "Reporter Competition Briefing"
+  description: "Agent responsible for generating soccer reporter competition briefing."
+  context:
+    config-frequency: 1
+  workflows:
+    
+    - name: "workflow-reporter-competition-briefing"
+      description: "Reporter Competition Briefing"
+      inputs:
+        season_id: "$.get('season_id', 'sr:season:126393') or None"
+      outputs:
+        workflow-reporter-competition-briefing: "$.get('workflow-status', False)"

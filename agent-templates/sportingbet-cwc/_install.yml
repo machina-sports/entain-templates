@@ -1,0 +1,164 @@
+setup:
+  title: "Sportingbet CWC"
+  description: AI-powered blog and chat for FIFA Club World Cup 2025.
+  category:
+    - special-templates
+  estimatedTime: 15 minutes
+  features:
+    - AI Agent to generate articles, briefings, and snippets.
+    - AI Chat to answer questions about the FIFA Club World Cup 2025.
+    - AI Image Generator to generate images for the blog, using a soccer match as context.
+  integrations:
+    - sportradar
+  status: available
+  value: "agent-templates/sportingbet-cwc"
+  version: 1.0.0
+
+datasets:
+  
+  - type: "workflow"
+    path: "_folders.yml"
+
+  - type: "mappings"
+    path: "mappings/competition.yml"
+    
+  - type: "agent"
+    path: "_populate.yml"
+
+  - type: "agent"
+    path: "configuration/agent.yml"
+
+  # # bwin
+  # - type: "connector"
+  #   path: "../../connectors/bwin/bwin.yml"
+  # - type: "workflow"
+  #   path: "../../connectors/bwin/sync-markets-odds.yml"
+
+  # connectors
+  - type: "connector"
+    path: "../../connectors/machina-ai/machina-ai.yml"
+  - type: "connector"
+    path: "../../connectors/machina-ai-fast/machina-ai-fast.yml"
+  - type: "connector"
+    path: "../../connectors/stability/stability.yml"
+  - type: "connector"
+    path: "../../connectors/storage/storage.yml"
+
+  # # tallysight
+  # - type: "connector"
+  #   path: "../../connectors/tallysight/tallysight.yml"
+  # - type: "workflow"
+  #   path: "../../connectors/tallysight/load-leagues.yml"
+
+  # configuration
+  - type: "workflow"
+    path: "configuration/agenda.yml"
+  - type: "workflow"
+    path: "configuration/sites.yml"
+
+  # editorial-agent
+  - type: "agent"
+    path: "editorial/agent.yml"
+  - type: "prompts"
+    path: "editorial/prompts.yml"
+  - type: "workflow"
+    path: "editorial/scripts.yml"
+  - type: "workflow"
+    path: "editorial/workflow.yml"
+
+  # reporter-agent
+  - type: "agent"
+    path: "reporter/agent.yml"
+  - type: "prompts"
+    path: "reporter/prompts.yml"
+  - type: "workflow"
+    path: "reporter/scripts.yml"
+  - type: "workflow"
+    path: "reporter/trendings.yml"
+  - type: "workflow"
+    path: "reporter/workflow.yml"
+
+  # researcher-scripts
+  - type: "agent"
+    path: "researcher/agent.yml"
+  - type: "prompts"
+    path: "researcher/prompts.yml"
+  - type: "workflow"
+    path: "researcher/consumer.yml"
+  - type: "workflow"
+    path: "researcher/scripts.yml"
+  - type: "workflow"
+    path: "researcher/workflow.yml"
+
+  # transcript-agent
+  # - type: "agent"
+  #   path: "transcript/agent.yml"
+  - type: "prompts"
+    path: "transcript/prompts.yml"
+  # - type: "workflow"
+  #   path: "transcript/scripts.yml"
+  - type: "workflow"
+    path: "transcript/workflow.yml"
+
+  # # workflows-soccer
+  # - type: "mappings"
+  #   path: "soccer/mapping-last-match.yml"
+  # - type: "prompts"
+  #   path: "soccer/prompt-article-br.yml"
+  # - type: "prompts"
+  #   path: "soccer/prompt-article-en.yml"
+  # - type: "prompts"
+  #   path: "soccer/prompt-competitor.yml"
+  # - type: "prompts"
+  #   path: "soccer/prompt-last-match.yml"
+  # - type: "workflow"
+  #   path: "soccer/workflow-article-br.yml"
+  # - type: "workflow"
+  #   path: "soccer/workflow-article-en.yml"
+  # - type: "workflow"
+  #   path: "soccer/workflow-competitors.yml"
+  # - type: "workflow"
+  #   path: "soccer/workflow-odds.yml"
+  # - type: "workflow"
+  #   path: "soccer/workflow-standings.yml"
+
+  # # workflows
+  # - type: "workflow"
+  #   path: "reporter-image.yml"
+  # - type: "workflow"
+  #   path: "reporter-nba.yml"
+  # - type: "workflow"
+  #   path: "research-odds.yml"
+  # - type: "workflow"
+  #   path: "research-stats-nba.yml"
+
+  # # workflows
+  # - type: "workflow"
+  #   path: "../../connectors/sportradar-soccer/sync-competitions.yml"
+  # - type: "workflow"
+  #   path: "../../connectors/sportradar-soccer/sync-schedules.yml"
+  # - type: "workflow"
+  #   path: "../../connectors/sportradar-soccer/sync-seasons.yml"
+  # - type: "workflow"
+  #   path: "../../connectors/sportradar-soccer/sync-standings.yml"
+
+  # - type: "workflow"
+  #   path: "../../connectors/sportradar-nba/sync-nba-games.yml"
+
+  # # populate-content
+  # # - type: "agent"
+  #   # path: "agent-producer.yml"
+
+  # - type: "prompts"
+  #   path: "prompt-articles.yml"
+  # - type: "prompts"
+  #   path: "prompt-research.yml"
+
+  # - type: "agent"
+  #   path: "_scheduler.yml"
+
+  # - type: "agent"
+  #   path: "soccer/workflow-scheduler.yml"
+
+  # - type: "agent"
+  #   path: "nba-scheduler.yml"
