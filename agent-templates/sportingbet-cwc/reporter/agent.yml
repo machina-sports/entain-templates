@@ -6,14 +6,11 @@ agent:
   description: "Agent responsible for generating soccer reporter competition briefing."
   context:
     config-frequency: 1
-  context-agent:
-    event_code: "$.get('event_code') or None"
   workflows:
     
-    # workflow-reporter-competition-briefing
     - name: "workflow-reporter-competition-briefing"
       description: "Reporter Competition Briefing"
       inputs:
-        event_code: "$.get('event_code')"
+        season_id: "$.get('season_id', 'sr:season:126393') or None"
       outputs:
         workflow-reporter-competition-briefing: "$.get('workflow-status', False)"

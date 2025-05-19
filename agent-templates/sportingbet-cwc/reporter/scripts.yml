@@ -22,10 +22,31 @@ workflow:
             "description": "Reporter Competition Briefing",
             "name": "content-script",
             "indexes": [
-              "REPORTER_COMPETITION_HISTORY",
-              "REPORTER_COMPETITION_CHAMPIONS",
-              "REPORTER_COMPETITION_EDITION",
-            ]
+              "REPORTER_BOTAFOGO_EXPECTATIONS",
+              "REPORTER_FLAMENGO_EXPECTATIONS",
+              "REPORTER_FLUMINENSE_EXPECTATIONS",
+              "REPORTER_PALMEIRAS_EXPECTATIONS",
+              "REPORTER_FACTS_AND_FIGURES",
+            ],
+            "snippets": {
+              "REPORTER_BOTAFOGO_EXPECTATIONS": [
+                "CWC_HISTORY_BOTAFOGO_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_FLAMENGO_EXPECTATIONS": [
+                "CWC_HISTORY_FLAMENGO_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_FLUMINENSE_EXPECTATIONS": [
+                "CWC_HISTORY_FLUMINENSE_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_PALMEIRAS_EXPECTATIONS": [
+                "CWC_HISTORY_PALMEIRAS_EXPECTATIONS_WEB_RESEARCH",
+              ],
+              "REPORTER_FACTS_AND_FIGURES": [
+                "CWC_HISTORY_GOAL_WEBSITE_WEB_RESEARCH",
+                "CWC_HISTORY_FLAMENGO_EXPECTATIONS_WEB_RESEARCH",
+                "CWC_HISTORY_PALMEIRAS_EXPECTATIONS_WEB_RESEARCH",
+              ],
+            }
           }
       metadata:
         group: "'COMPETITION_ARTICLES'"

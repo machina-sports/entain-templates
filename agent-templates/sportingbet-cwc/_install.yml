@@ -74,6 +74,8 @@ datasets:
   - type: "workflow"
     path: "reporter/scripts.yml"
   - type: "workflow"
+    path: "reporter/trendings.yml"
+  - type: "workflow"
     path: "reporter/workflow.yml"
 
   # researcher-scripts

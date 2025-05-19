@@ -1,9 +1,9 @@
 workflow:
 
-  # workflow-reporter-competition-briefing
-  name: "workflow-reporter-competition-briefing"
-  title: "Reporter Competition Briefing"
-  description: "Workflow to produce soccer reporter competition briefing."
+  # workflow-reporter-competition-trendings
+  name: "workflow-reporter-competition-trendings"
+  title: "Reporter Competition Trendings"
+  description: "Workflow to produce soccer reporter competition trendings."
   context-variables:
     debugger:
       enabled: true
@@ -78,81 +78,37 @@ workflow:
       metadata:
         season_id: "$.get('season_id')"
 
-    # 4 load-existing-articles
-    - type: "document"
-      name: "load-existing-articles"
-      description: "Search for existing articles in the database."
-      condition: "$.get('competition_exists') is True"
-      connector:
-        name: "machina-ai"
-        command: "invoke_embedding"
-        model: "text-embedding-3-small"
-      config:
-        action: "search"
-        search-limit: 100
-        search-vector: false
-      inputs:
-        name: "'content-article'"
-      outputs:
-        briefing-articles: "$"
-        briefing-articles-bulk: |
-          [
-            {
-              **d.get('value', {}),
-              'metadata': d.get('metadata', {})
-            }
-            for d in $.get('documents', [])
-          ]
-        documents_covered: |
-          [
-            d.get('metadata', {}).get('script_code')
-            for d in $.get('documents', [])
-          ]
+    # # 4 load-existing-articles
+    # - type: "document"
+    #   name: "load-existing-articles"
+    #   description: "Search for existing articles in the database."
+    #   condition: "$.get('competition_exists') is True"
+    #   connector:
+    #     name: "machina-ai"
+    #     command: "invoke_embedding"
+    #     model: "text-embedding-3-small"
+    #   config:
+    #     action: "search"
+    #     search-limit: 10
+    #     search-vector: false
+    #   inputs:
+    #     name: "'content-article'"
+    #   outputs:
+    #     briefing-articles: "$"
+    #     briefing-articles-bulk: |
+    #       [
+    #         {
+    #           **d.get('value', {}),
+    #           'metadata': d.get('metadata', {})
+    #         }
+    #         for d in $.get('documents', [])
+    #       ]
+    #     documents_covered: |
+    #       [
+    #         d.get('metadata', {}).get('script_code')
+    #         for d in $.get('documents', [])
+    #       ]
     
-    ## generate commentaries from historical data
-
-    # 0 scripts-reporter-competition-briefing
-    - type: "document"
-      name: "scripts-reporter-competition-briefing"
-      description: "Search for reporting team scripts in the database."
-      condition: |
-        (
-          $.(competition_exists) is True
-        )
-      config:
-        action: "search"
-        search-limit: 1
-        search-vector: false
-      filters:
-        metadata.group: "'COMPETITION_ARTICLES'"
-      inputs:
-        name: "'content-script'"
-      outputs:
-        briefing-next-topic-to-cover: |
-          'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
-            [
-              script
-              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
-              if script not in $.(documents_covered)
-            ][0] if [
-              script
-              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
-              if script not in $.(documents_covered)
-            ] else 'NONE_TOPIC_TO_COVER'
-          )
-        briefing-required-snippets: |
-          'NONE_TOPIC_TO_COVER' if not $.get('documents', [{}])[0].get('value', {}).get('indexes', []) else (
-            [
-              $.get('documents', [{}])[0].get('value', {}).get('snippets', {}).get(script, [])
-              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
-              if script not in $.(documents_covered)
-            ][0] if [
-              script
-              for script in $.get('documents', [{}])[0].get('value', {}).get('indexes', [])
-              if script not in $.(documents_covered)
-            ] else 'NONE_TOPIC_TO_COVER'
-          )
-
     # 1
     - type: "document"
       name: "load-relevant-snippets"
@@ -160,15 +116,12 @@ workflow:
       condition: |
         (
           $.(competition_exists) is True
-          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
         )
       config:
         action: "search"
-        search-limit: 10
+        search-limit: 100
         search-vector: false
         search-sorters: ["value.updated", -1]
-      filters:
-        metadata.briefing_code: "{'$in': $.(briefing-required-snippets)}"
       inputs:
         name: "'content-snippet'"
       outputs:
@@ -179,14 +132,13 @@ workflow:
             for d in $.get('documents', [])
           ]
 
-    # 1 prompt-reporter-competition-article
+    # 1 prompt-reporter-competition-trendings
     - type: "prompt"
-      name: "prompt-reporter-competition-article"
-      description: "prompt-reporter-competition-article"
+      name: "prompt-reporter-competition-trendings"
+      description: "prompt-reporter-competition-trendings"
       condition: |
         (
           $.(competition_exists) is True
-          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
           and $.(has-relevant-snippets) is True
         )
       connector:
@@ -196,8 +148,8 @@ workflow:
       inputs:
         doc_event_title: "$.get('competition_title')"
         doc_competition_season: "$.get('competition_season')"
-        selected_script_code: "$.get('briefing-next-topic-to-cover')"
         relevant_snippets: "$.get('relevant-snippets')"
+        instruction: "'Produza um artigo com o resumo das notícias nas últimas 12 horas.'"
       outputs:
         reporter-article-br-heading: "$.get('title')"  
         reporter-article-br-subtitle: "$.get('subtitle')"
@@ -207,6 +159,7 @@ workflow:
         reporter-article-br-section-content-2: "$.get('section_content_2')"
         reporter-article-br-section-content-3: "$.get('section_content_3')"
         reporter-article-br-image-briefing: "$.get('image_briefing')"
+        reporter-article-br-related-questions: "$.get('related_questions')"
 
     # 2 generate-image
     - type: "connector"
@@ -215,7 +168,6 @@ workflow:
       condition: |
         (
           $.(competition_exists) is True
-          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
           and $.(has-relevant-snippets) is True
         )
       connector:
@@ -235,7 +187,6 @@ workflow:
       condition: |
         (
           $.(competition_exists) is True
-          and '$.(briefing-next-topic-to-cover)' != 'NONE_TOPIC_TO_COVER'
           and $.(has-relevant-snippets) is True
         )
       connector:
@@ -256,7 +207,6 @@ workflow:
       condition: |
         (
           $.get('competition_exists') is True
-          and $.get('briefing-next-topic-to-cover') != 'NONE_TOPIC_TO_COVER'
           and $.(has-relevant-snippets) is True
         )
       config:
@@ -270,6 +220,7 @@ workflow:
             'section_1_content': $.get('reporter-article-br-section-content-1'),
             'section_2_content': $.get('reporter-article-br-section-content-2'),
             'section_3_content': $.get('reporter-article-br-section-content-3'),
+            'related_questions': $.get('reporter-article-br-related-questions'),
             'execution': datetime.utcnow(),
             'slug': f"{$.get('reporter-article-br-slug')}-br",
             'title': $.get('reporter-article-br-heading'),
@@ -281,8 +232,8 @@ workflow:
         competition: "$.get('competition_id')"
         competition_code: "$.get('competition_code')"
         competition_title: "$.get('competition_title')"
-        content_type: "'commentaries-competition-briefing'"
-        script_code: "$.get('briefing-next-topic-to-cover')"
+        content_type: "'trendings-competition-trendings'"
+        script_code: "$.get('trendings-next-topic-to-cover')"
         language: "'br'"
 
     # 1 version-control-success

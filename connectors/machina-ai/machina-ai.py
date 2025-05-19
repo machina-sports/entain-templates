@@ -26,12 +26,16 @@ def generate_image(request_data):
         return {"status": "error", "message": "Model name is required."}
 
     prompt = f"""
-        Create a 3:2 landscape image blog thumbnail for a football match between Corinthians vs Palmeiras, strictly aligned with the imagery guidelines below, using the provided <brandGuidelines> XML:
+        {instruction}
+
+        Create a 3:2 landscape image blog thumbnail, strictly aligned with the imagery guidelines below, using the provided <brandGuidelines> XML:
 
         Imagery Guidelines:
 
         Athlete Illustration Style (ONLY athletes):
-        Illustrate athletes in an art style reminiscent of the classic video game "International Superstar Soccer." Depict athletes with pixel-inspired aesthetics, dynamic and exaggerated poses typical of retro sports games. Jerseys and clothing should clearly represent each team's official colors—Corinthians and Palmeiras—but avoid sponsor logos, or recognizable player features. Convey energetic and dynamic movement through pixel-art action lines and poses, explicitly avoiding motion blur to retain clarity and retro authenticity.
+        Illustrate athletes in an art style reminiscent of the classic video game "International Superstar Soccer." Depict athletes with pixel-inspired aesthetics, dynamic and exaggerated poses typical of retro sports games.
+        Jerseys and clothing should clearly represent each team's official colors — but avoid sponsor logos, or recognizable player features.
+        Convey energetic and dynamic movement through pixel-art action lines and poses, explicitly avoiding motion blur to retain clarity and retro authenticity.
 
         General Design Style (All other elements):
         Maintain sharp, modern, and professional graphic treatments for backgrounds, DOT graphic elements, and overall composition. Lighting should be high-contrast and crisp, simulating stadium floodlights without HDR glow.
@@ -132,8 +136,8 @@ def generate_image(request_data):
         result = llm.images.generate(
             model=model_name,
             prompt=prompt,
-            size="1024x1024",
-            quality="low",
+            size="1536x1024",
+            quality="high",
         )
 
         image_base64 = result.data[0].b64_json
