@@ -67,34 +67,6 @@ workflow:
       filters:
         document_id: "$.get('document_id')"
 
-    # Load similar documents
-    - type: "document"
-      name: "load-similar-documents"
-      description: "Load similar documents"
-      config:
-        action: "search"
-        # threshold-docs: 5
-        # threshold-similarity: 0.01
-        # search-limit: 162
-        search-vector: false
-      condition: "$.get('document_id') is not None"
-      connector:
-        name: "machina-ai"
-        command: "invoke_embedding"
-        model: "text-embedding-3-small"
-      inputs:
-        name: "'content-snippet'"
-        search-limit: "'10'"
-        search-query: "$.get('question')"
-      outputs:
-        parsed_documents: |
-          [
-            {
-              **d.get('value', {}),
-            }
-            for d in $.get('documents', [])
-          ]
-
     # chat-analysis-prompt
     - type: "prompt"
       name: "chat-analysis-prompt"
@@ -108,25 +80,52 @@ workflow:
         messages: "$.get('question')"
       outputs:
         is_faq_question: "$.get('is_faq_question')"
-        is_match_question: "$.get('is_match_question')"
-        is_betting_question: "$.get('is_betting_question')"
-        is_odds_question: "$.get('is_odds_question')"
-        is_other_question: "$.get('is_other_question')"
-        is_player_question: "$.get('is_player_question')"
-        is_team_question: "$.get('is_team_question')"
-        player_name: "$.get('player_name')"
-        team_name: "$.get('team_name')"
+        is_out_of_scope_question: "$.get('is_out_of_scope_question')"
+        queries_to_search: "$.get('queries_to_search')"
 
-    # Load faq documents
+    # Load similar documents
     - type: "document"
       name: "load-similar-documents"
       description: "Load similar documents"
+      config:
+        action: "search"
+        threshold-docs: 10
+        threshold-similarity: 0.01
+        search-limit: 10
+        search-vector: true
+      connector:
+        name: "machina-ai"
+        command: "invoke_embedding"
+        model: "text-embedding-3-small"
+      condition: |
+        (
+          $.get('document_id') is not None
+          and $.get('queries_to_search') is not None
+          and $.get('queries_to_search') != ''
+        )
+      inputs:
+        name: "'content-snippet'"
+        search-limit: "'10'"
+        search-query: "$.get('queries_to_search')"
+      outputs:
+        parsed_documents: |
+          [
+            {
+              **d.get('value', {}),
+            }
+            for d in $.get('documents', [])
+          ]
+
+    # Load faq documents
+    - type: "document"
+      name: "load-faq-documents"
+      description: "Load faq documents"
       condition: "$.get('is_faq_question') is True"
       config:
         action: "search"
-        threshold-docs: 5
+        threshold-docs: 10
         threshold-similarity: 0.01
-        search-limit: 1000
+        search-limit: 10
         search-vector: true
       connector:
         name: "machina-ai"
@@ -134,7 +133,7 @@ workflow:
         model: "text-embedding-3-small"
       inputs:
         name: "'faq-snippet'"
-        search-limit: "'1000'"
+        search-limit: "'10'"
         search-query: "$.get('messages')"
       outputs:
         faq_documents: |
@@ -152,7 +151,7 @@ workflow:
       condition: |
         (
           $.get('document_id') is not None
-          and $.get('is_other_question') is False
+          and $.get('is_out_of_scope_question') is False
         )
       connector:
         # name: "machina-ai-fast"
@@ -185,7 +184,7 @@ workflow:
       condition: |
         (
           $.get('document_id') is not None
-          and $.get('is_other_question') is True
+          and $.get('is_out_of_scope_question') is True
         )
       connector:
         # name: "machina-ai-fast"

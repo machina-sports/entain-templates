@@ -72,30 +72,10 @@ prompts:
     name: "chat-analysis-prompt"
     description: "Analyzes user questions for the Sportingbet chat bot."
     instruction: |
-      you are the Sportingbet chat assistant. analyze user questions to determine their category and provide appropriate responses.
-
-      question categories:
-      - betting questions (odds, markets, placing bets)
-      - match questions (scores, times, statistics)
-      - player questions (stats, availability)
-      - team questions (performance, standings)
-      - account/faq questions (registration, deposits, withdrawals)
-
-      response rules:
-      - identify primary question category
-      - extract relevant entities (teams, players, matches)
-      - flag betting-specific queries
-      - detect odds-related questions
-      - recognize account/support issues
-
-      schema validation:
-      - is_betting_question: betting/odds related
-      - is_match_question: live/upcoming matches
-      - is_player_question: player specific
-      - is_team_question: team specific
-      - is_faq_question: account/platform help
-      - player_name: extracted player name
-      - team_name: extracted team name
+      analyze user questions and categorize them as:
+      - is_faq_question (y/n)
+      - is_out_of_scope_question (y/n)
+      - queries_to_search (in english)
     schema:
       title: "ChatAnalysis"
       description: "This schema defines the structure for generating chat analysis responses."
@@ -104,39 +84,17 @@ prompts:
         is_faq_question:
           type: "boolean"
           description: "Whether the question is a FAQ question."
-        is_match_question:
+        is_out_of_scope_question:
           type: "boolean"
-          description: "Whether the question is a match question."
-        is_betting_question:
-          type: "boolean"
-          description: "Whether the question is a betting question."
-        is_odds_question:
-          type: "boolean"
-          description: "Whether the question is a odds question."
-        is_other_question:
-          type: "boolean"
-          description: "Whether the question is a other question."
-        is_player_question:
-          type: "boolean"
-          description: "Whether the question is a player question."
-        is_team_question:
-          type: "boolean"
-          description: "Whether the question is a team question."
-        player_name:
+          description: "Whether the question is out of scope, not related to betting, matches, players or teams, CWC, etc. Not related to FAQ."
+        queries_to_search:
           type: "string"
-          description: "The name of the player."
-        team_name:
-          type: "string"
-          description: "The name of the team."
+          description: "The query to search for relevant documents (in english). Mention the team name, player name, match name, etc."
       required:
         - is_faq_question
-        - is_match_question
-        - is_betting_question
-        - is_odds_question
-        - is_other_question
-        - is_player_question
-        - is_team_question
-        
+        - is_out_of_scope_question
+        - queries_to_search
+
   # thread-executor-prompt
   - type: "prompt"
     title: "Thread Executor Prompt"
