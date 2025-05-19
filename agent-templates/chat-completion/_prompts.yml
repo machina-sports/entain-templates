@@ -128,7 +128,15 @@ prompts:
         team_name:
           type: "string"
           description: "The name of the team."
-
+      required:
+        - is_faq_question
+        - is_match_question
+        - is_betting_question
+        - is_odds_question
+        - is_other_question
+        - is_player_question
+        - is_team_question
+        
   # thread-executor-prompt
   - type: "prompt"
     title: "Thread Executor Prompt"
