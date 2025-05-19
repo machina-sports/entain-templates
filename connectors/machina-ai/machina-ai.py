@@ -26,52 +26,44 @@ def generate_image(request_data):
         return {"status": "error", "message": "Model name is required."}
 
     prompt = f"""
-        {instruction}
-
         Create a 3:2 landscape image blog thumbnail, strictly aligned with the imagery guidelines below, using the provided <brandGuidelines> XML:
 
         Imagery Guidelines:
 
-        Athlete Illustration Style (ONLY athletes):
-        Illustrate athletes in an art style reminiscent of the classic video game "International Superstar Soccer." Depict athletes with pixel-inspired aesthetics, dynamic and exaggerated poses typical of retro sports games.
-        Jerseys and clothing should clearly represent each team's official colors — but avoid sponsor logos, or recognizable player features.
-        Convey energetic and dynamic movement through pixel-art action lines and poses, explicitly avoiding motion blur to retain clarity and retro authenticity.
+        Foreground Illustration Style - applies to any foreground subjects supplied in {instruction}:
+        - Illustrate each foreground subject in a style reminiscent of the classic SNES video game "International Superstar Soccer" – true 16-bit palette, visible 2–3 px outlines, pixel-inspired aesthetics, and dynamic, exaggerated poses typical of retro sports games.  
+        - Jerseys or clothing must clearly match each team’s official colors while omitting sponsor logos or recognizable faces.  
+        - Convey energetic movement through pixel-art action lines and diagonal streaks; avoid motion blur to preserve crisp retro authenticity.
 
-        General Design Style (All other elements):
-        Maintain sharp, modern, and professional graphic treatments for backgrounds, DOT graphic elements, and overall composition. Lighting should be high-contrast and crisp, simulating stadium floodlights without HDR glow.
+        General Design Style (all other elements):
+        Maintain sharp, modern, professional treatments for backgrounds, DOT graphic elements, and overall composition. Lighting should be high-contrast and crisp, simulating stadium floodlights without HDR glow.
 
         DOT Graphic Element Usage:
-
-        MASK: Crop the entire athlete illustration within a 900×700 px parallelogram tilted 12° right, corner radius 65 px.
-
-        FILLED: Solid DOT in Bright Blue (#0A5EEA) or Bright Deep Blue (#003DC4) positioned behind athletes as an abstract panel for visual depth.
+        MASK – Crop the entire foreground illustration within a 900 × 700 px parallelogram tilted 12° right, corner radius 65 px.  
+        FILLED – Place a solid DOT in Bright Blue (#0A5EEA) or Bright Deep Blue (#003DC4) behind the foreground subjects to add visual depth.
 
         Background Canvas Options:
+        - Bright Deep Blue (#003DC4) or Bright Dark Blue (#061F3F) for a dramatic night-game mood.  
+        - White (#FFFFFF) for a lighter, open feel.
 
-        Bright Deep Blue (#003DC4) or Bright Dark Blue (#061F3F) for a dramatic, night-game mood, or
-
-        White (#FFFFFF) for a lighter, more open feel.
-
-        Gradient (Optional, Use Sparingly):
-
-        * Bright Extra Light Blue (#D3ECFF) → Bright Light Blue (#45CAFF): soft, uplifting diagonal sweep.
-        * Bright Light Blue (#45CAFF) → Bright Blue (#0A5EEA): energetic, modern diagonal transition.
-        * Bright Deep Blue (#003DC4) → Bright Dark Blue (#061F3F): dramatic vertical fade for night intensity.
+        Gradient (optional, use sparingly):
+        – Bright Extra Light Blue (#D3ECFF) to Bright Light Blue (#45CAFF): soft diagonal sweep.  
+        – Bright Light Blue (#45CAFF) to Bright Blue (#0A5EEA): energetic diagonal transition.  
+        – Bright Deep Blue (#003DC4) to Bright Dark Blue (#061F3F): vertical fade for night intensity.
 
         Composition:
-
-        Leave 15–20% negative space explicitly reserved for text overlays (headlines, match details).
+        Reserve 15–20 percent negative space for text overlays (headlines, match details).
 
         Camera POV:
-        Low-angle or sideline telephoto, shallow depth of field (ƒ2.8–ƒ4).
+        Low-angle or sideline telephoto with shallow depth of field (ƒ2.8–ƒ4).
 
         Lighting:
         High contrast from stadium floodlights, crisp shadows, no HDR glow.
 
         Mandatory Restrictions:
+        - No sponsorship logos on jerseys.  
+        - Never include the Sportingbet logo, word-mark, or symbol.
 
-        * No sponsorship logos on jerseys.
-        * Never include the Sportingbet logo, word-mark, or symbol.
 
         Full Integrated Brand Guidelines XML:
 
