@@ -26,6 +26,8 @@ mappings:
       team_away_name: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[1].get('name')"
       team_home_id: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[0].get('id')"
       team_away_id: "$.get('event_selected', {}).get('sport_event', {}).get('competitors', [])[1].get('id')"
+      team_home_stats: "$.get('event_selected', {}).get('sport_event_statistics', {}).get('totals', {}).get('competitors', [])[0]"
+      team_away_stats: "$.get('event_selected', {}).get('sport_event_statistics', {}).get('totals', {}).get('competitors', [])[1]"
       title: "$.get('event_selected', {}).get('title')"
       version_control: "$.get('event_selected', {}).get('version_control', {})"
 
@@ -42,4 +44,17 @@ mappings:
       played: "$.get('item').get('clock', {}).get('played')"
       period_scores: "$.get('item').get('period_scores')"
       status: "$.get('item').get('status')"
-      
+
+  - type: "mapping"
+    title: "Soccer Player Stats"
+    name: "mapping-soccer-player-stats"
+    description: "Mapping data from sportradar soccer data"
+    outputs:
+      player_stats: |
+        [
+          {
+            **player,
+          }
+          for player in $.get('_players', [])
+          if player.get('id') == $.('_player_id')
+        ]

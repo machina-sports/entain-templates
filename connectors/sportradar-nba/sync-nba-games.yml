@@ -1,6 +1,6 @@
 workflow:
   name: "sportradar-nba-sync-games"
-  title: "NBA - Sync Games"
+  title: "Sync Games"
   description: "Workflow to synchronize NBA games from SportRadar API to Machina."
   context-variables:
     sportradar-nba:

@@ -39,5 +39,5 @@ mappings:
             },
             'web-scraping-url': item.get('url', ''),
           }
-          for item in $.(input-searching-content).get('results', {}).get('main', [])[:3]
+          for item in $.(input-searching-content).get('results', {}).get('main', [])[:10]
         ]
