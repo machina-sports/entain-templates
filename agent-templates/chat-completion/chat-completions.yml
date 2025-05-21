@@ -51,7 +51,13 @@ workflow:
         search-limit: "'1000'"
         search-query: "$.get('messages')"
       outputs:
-        documents: "$.get('documents')"
+        parsed_documents: |
+          [
+            {
+              **d.get('value', {}),
+            }
+            for d in $.get('documents', [])
+          ]
 
     # chat-completions-prompt
     - type: "prompt"
@@ -69,7 +75,7 @@ workflow:
         # command: "invoke_prompt"
         # model: "gpt-4.1"
       inputs:
-        documents: "$.get('documents')"
+        documents: "$.get('parsed_documents')"
         messages: "$.get('messages')"
       outputs:
         message: "$.get('choices')[0].get('message').get('content')"
